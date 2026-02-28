@@ -1,0 +1,57 @@
+<div class="autocomplete">
+  <div class="autocomplete__control">
+    <span class="autocomplete__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" class="autocomplete__icon-svg">
+        <path
+          d="M10.5 3a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Zm10.2 14.8a1 1 0 0 1-1.4 1.4l-3.2-3.2a1 1 0 1 1 1.4-1.4l3.2 3.2Z"
+        />
+      </svg>
+    </span>
+    <input
+      [disabled]="disabled"
+      [ngModel]="value"
+      (blur)="handleBlur()"
+      (focus)="handleFocus()"
+      (ngModelChange)="handleInput($event)"
+      class="autocomplete__input"
+      type="text"
+      placeholder="f12025"
+    />
+    @if (value && !disabled) {
+      <button
+        type="button"
+        class="autocomplete__clear"
+        (mousedown)="clearValue($event)"
+        aria-label="Clear game"
+      >
+        <svg viewBox="0 0 24 24" class="autocomplete__icon-svg">
+          <path
+            d="M6.2 6.2a1 1 0 0 1 1.4 0L12 10.6l4.4-4.4a1 1 0 1 1 1.4 1.4L13.4 12l4.4 4.4a1 1 0 1 1-1.4 1.4L12 13.4l-4.4 4.4a1 1 0 1 1-1.4-1.4l4.4-4.4-4.4-4.4a1 1 0 0 1 0-1.4Z"
+          />
+        </svg>
+      </button>
+    }
+    @if (!value || disabled) {
+      <span class="autocomplete__caret" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="autocomplete__icon-svg">
+          <path
+            d="M6.7 9.3a1 1 0 0 1 1.4 0L12 13.2l3.9-3.9a1 1 0 1 1 1.4 1.4l-4.6 4.6a1 1 0 0 1-1.4 0L6.7 10.7a1 1 0 0 1 0-1.4Z"
+          />
+        </svg>
+      </span>
+    }
+  </div>
+
+  @if (dropdownOpen) {
+    <div class="autocomplete__panel panel-card">
+      @for (option of filteredOptions; track option) {
+        <button type="button" class="autocomplete__option" (mousedown)="selectOption(option.code)">
+          <span class="autocomplete__label">{{ option.label }}</span>
+        </button>
+      }
+      @if (filteredOptions.length === 0) {
+        <p class="autocomplete__empty">No games found</p>
+      }
+    </div>
+  }
+</div>

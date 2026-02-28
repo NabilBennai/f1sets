@@ -1,0 +1,44 @@
+<div class="multi-auto">
+  <button
+    type="button"
+    class="multi-auto__trigger"
+    [class.multi-auto__trigger--dense]="dense"
+    (click)="toggleOpen($event)"
+  >
+    <span>{{ placeholder }}</span>
+    @if (selectedCount > 0) {
+      <span class="multi-auto__count">{{ selectedCount }}</span>
+    }
+  </button>
+
+  @if (open) {
+    <div class="multi-auto__panel" [ngStyle]="panelStyle" (click)="$event.stopPropagation()">
+      <input
+        class="multi-auto__search"
+        type="search"
+        [(ngModel)]="query"
+        placeholder="Type to filter..."
+      />
+
+      <div class="multi-auto__options">
+        @for (opt of filteredOptions; track opt.value) {
+          <label class="multi-auto__option">
+            <input
+              type="checkbox"
+              [checked]="isSelected(opt.value)"
+              (change)="toggleValue(opt.value, $event)"
+            />
+            <span>{{ opt.label }}</span>
+          </label>
+        }
+        @if (filteredOptions.length === 0) {
+          <p class="multi-auto__empty">{{ emptyLabel }}</p>
+        }
+      </div>
+
+      <button type="button" class="btn-secondary btn-secondary--tiny" (click)="clear($event)">
+        Clear
+      </button>
+    </div>
+  }
+</div>

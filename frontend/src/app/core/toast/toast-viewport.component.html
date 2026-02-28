@@ -1,0 +1,25 @@
+<section class="toast-viewport" aria-live="polite" aria-atomic="true">
+  @if (toasts$ | async; as toasts) {
+    @for (toast of toasts; track trackByToastId($index, toast)) {
+      <article class="toast-card" [class]="'toast-card toast-card--' + toast.type">
+        <div class="toast-card__icon">
+          @if (toast.type === 'success') {
+            <span>✓</span>
+          } @else if (toast.type === 'error') {
+            <span>!</span>
+          } @else {
+            <span>i</span>
+          }
+        </div>
+        <div class="toast-card__body">
+          <h4>{{ toast.title }}</h4>
+          <p>{{ toast.message }}</p>
+          <div class="toast-card__bar-wrap">
+            <div class="toast-card__bar" [style.animation-duration.ms]="toast.durationMs"></div>
+          </div>
+        </div>
+        <button type="button" class="toast-card__close" (click)="dismiss(toast.id)">x</button>
+      </article>
+    }
+  }
+</section>

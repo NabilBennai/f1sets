@@ -1,0 +1,77 @@
+<section class="settings-shell">
+  <article class="panel settings-card">
+    <p class="eyebrow">Profile Settings</p>
+    <h1>Edit Your Profile</h1>
+    <p class="copy">Control what is visible publicly and keep your personal data up to date.</p>
+
+    <div class="avatar-section">
+      @if (avatarUrl) {
+        <img [src]="avatarUrl" alt="Profile avatar" class="avatar" />
+      } @else {
+        <div class="avatar avatar--fallback">?</div>
+      }
+      <label class="btn-secondary cursor-pointer">
+        {{ uploading ? 'Uploading...' : 'Upload Picture' }}
+        <input
+          (change)="onAvatarFileSelected($event)"
+          accept="image/png,image/jpeg,image/webp"
+          hidden
+          type="file"
+        />
+      </label>
+    </div>
+
+    <form (ngSubmit)="submit()" [formGroup]="form" class="form" novalidate>
+      <div class="row two-cols">
+        <label class="field-group">
+          <span>First Name</span>
+          <input class="field" formControlName="firstName" type="text" />
+        </label>
+        <label class="field-group">
+          <span>Last Name</span>
+          <input class="field" formControlName="lastName" type="text" />
+        </label>
+      </div>
+
+      <div class="row two-cols">
+        <label class="field-group">
+          <span>Date of Birth</span>
+          <input class="field" formControlName="dateOfBirth" type="date" />
+        </label>
+        <label class="field-group">
+          <span>Country</span>
+          <input class="field" formControlName="country" type="text" />
+        </label>
+      </div>
+
+      <label class="field-group">
+        <span>Languages Used (comma separated)</span>
+        <input
+          class="field"
+          formControlName="languages"
+          placeholder="English, French"
+          type="text"
+        />
+      </label>
+
+      <label class="field-group">
+        <span>Profile Visibility</span>
+        <select class="field" formControlName="visibility">
+          <option value="PRIVATE">Private</option>
+          <option value="PUBLIC">Public</option>
+        </select>
+      </label>
+
+      @if (errorMessage) {
+        <p class="message error">{{ errorMessage }}</p>
+      }
+      @if (successMessage) {
+        <p class="message success">{{ successMessage }}</p>
+      }
+
+      <button [disabled]="saving || loading" class="btn-primary" type="submit">
+        {{ saving ? 'Saving...' : 'Save Profile' }}
+      </button>
+    </form>
+  </article>
+</section>

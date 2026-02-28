@@ -1,0 +1,241 @@
+<section class="admin-track app-page">
+  <header class="admin-track__titlebar app-page__header">
+    <div>
+      <h2 class="app-page__title">Admin Tracks</h2>
+      <p class="admin-track__muted app-page__subtitle">
+        ERP grid mode with inline filters, sorting, and modal-based editing.
+      </p>
+    </div>
+    <div class="admin-track__title-actions app-page__actions">
+      <label class="field-group field-group--inline">
+        <span>Game</span>
+        <select class="field" [formControl]="gameControl">
+          @for (option of gameOptions; track option.code) {
+            <option [value]="option.code">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+      <button type="button" class="btn-primary" (click)="openCreateModal()">Create Track</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <article class="state-card state-card--error">{{ errorMessage }}</article>
+  }
+
+  <section class="panel-card p-0 admin-track__grid-shell">
+    <div class="admin-track__table-wrap">
+      <table class="admin-track__table" [formGroup]="filters">
+        <thead>
+          <tr class="head-row head-row--labels">
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('slug')">
+                Slug
+                <span class="sort-mark">{{ sortMark('slug') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('grandPrixName')">
+                Grand Prix
+                <span class="sort-mark">{{ sortMark('grandPrixName') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('circuitName')">
+                Circuit
+                <span class="sort-mark">{{ sortMark('circuitName') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('lengthKm')">
+                Length (km)
+                <span class="sort-mark">{{ sortMark('lengthKm') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('hasImage')">
+                Image
+                <span class="sort-mark">{{ sortMark('hasImage') }}</span>
+              </button>
+            </th>
+            <th>Actions</th>
+          </tr>
+          <tr class="head-row head-row--filters">
+            <th>
+              <input
+                class="filter-control"
+                formControlName="query"
+                placeholder="Search slug / names"
+              />
+            </th>
+            <th class="filter-placeholder">-</th>
+            <th class="filter-placeholder">-</th>
+            <th class="filter-placeholder">-</th>
+            <th>
+              <app-multi-autocomplete-filter
+                [dense]="true"
+                placeholder="Image"
+                [options]="hasImageFilterOptions"
+                [selectedValues]="selectedHasImageFilters"
+                (selectedValuesChange)="onHasImageFiltersChange($event)"
+              />
+            </th>
+            <th class="filter-placeholder">-</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr>
+              <td colspan="6" class="admin-track__empty">Loading tracks...</td>
+            </tr>
+          } @else if (visibleTracks.length === 0) {
+            <tr>
+              <td colspan="6" class="admin-track__empty">No tracks found for current filters.</td>
+            </tr>
+          } @else {
+            @for (track of visibleTracks; track track.id) {
+              <tr>
+                <td>
+                  <span class="mono">{{ track.slug }}</span>
+                </td>
+                <td>{{ track.grandPrixName || '-' }}</td>
+                <td>{{ track.circuitName || '-' }}</td>
+                <td>{{ track.lengthKm ?? '-' }}</td>
+                <td>
+                  @if (track.trackImageUrl) {
+                    <span class="status-chip status-chip--yes">Available</span>
+                  } @else {
+                    <span class="status-chip status-chip--no">Missing</span>
+                  }
+                </td>
+                <td>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="btn-secondary btn-secondary--tiny"
+                      (click)="openEditModal(track)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-secondary btn-secondary--tiny"
+                      [disabled]="deleting"
+                      (click)="deleteTrack(track)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+
+@if (createModalOpen) {
+  <div class="modal-backdrop" (click)="closeCreateModal()">
+    <section class="modal panel-card" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <h3>Create Track</h3>
+        <button
+          type="button"
+          class="btn-secondary btn-secondary--tiny"
+          (click)="closeCreateModal()"
+        >
+          Close
+        </button>
+      </header>
+      <form class="modal__form" [formGroup]="createForm">
+        <label class="field-group">
+          <span>Slug</span>
+          <input class="field" formControlName="slug" />
+        </label>
+        <label class="field-group">
+          <span>Grand Prix Name</span>
+          <input class="field" formControlName="grandPrixName" />
+        </label>
+        <label class="field-group">
+          <span>Circuit Name</span>
+          <input class="field" formControlName="circuitName" />
+        </label>
+        <label class="field-group">
+          <span>Length (km)</span>
+          <input class="field" formControlName="lengthKm" />
+        </label>
+      </form>
+      <footer class="modal__actions">
+        <button type="button" class="btn-primary" [disabled]="creating" (click)="createTrack()">
+          {{ creating ? 'Creating...' : 'Create' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+}
+
+@if (editModalOpen && editingTrack; as track) {
+  <div class="modal-backdrop" (click)="closeEditModal()">
+    <section class="modal panel-card" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <h3>Edit {{ track.slug }}</h3>
+        <button type="button" class="btn-secondary btn-secondary--tiny" (click)="closeEditModal()">
+          Close
+        </button>
+      </header>
+
+      <div class="modal__content-grid">
+        <form class="modal__form" [formGroup]="editForm">
+          <label class="field-group">
+            <span>Slug</span>
+            <input class="field" formControlName="slug" />
+          </label>
+          <label class="field-group">
+            <span>Grand Prix Name</span>
+            <input class="field" formControlName="grandPrixName" />
+          </label>
+          <label class="field-group">
+            <span>Circuit Name</span>
+            <input class="field" formControlName="circuitName" />
+          </label>
+          <label class="field-group">
+            <span>Length (km)</span>
+            <input class="field" formControlName="lengthKm" />
+          </label>
+        </form>
+
+        <section class="photo-panel">
+          <h4>Track Photo</h4>
+          <div class="photo-preview">
+            @if (track.trackImageUrl) {
+              <img [src]="track.trackImageUrl" [alt]="track.slug" />
+            } @else {
+              <p>No image uploaded</p>
+            }
+          </div>
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            (change)="onFileSelected($event)"
+          />
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="uploading || !selectedFile"
+            (click)="uploadPhoto()"
+          >
+            {{ uploading ? 'Uploading...' : 'Upload photo' }}
+          </button>
+        </section>
+      </div>
+
+      <footer class="modal__actions">
+        <button type="button" class="btn-primary" [disabled]="saving" (click)="saveTrack()">
+          {{ saving ? 'Saving...' : 'Save changes' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+}

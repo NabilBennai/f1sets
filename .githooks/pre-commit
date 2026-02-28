@@ -1,0 +1,111 @@
+#!/usr/bin/env sh
+
+set -eu
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+cd "$ROOT_DIR"
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR -- 'frontend/**' 'backend/**')
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+FRONTEND_STAGED=$(git diff --cached --name-only --diff-filter=ACMR -- 'frontend/**')
+BACKEND_STAGED=$(git diff --cached --name-only --diff-filter=ACMR -- 'backend/**')
+
+if [ -n "$FRONTEND_STAGED" ]; then
+  echo "Running frontend format script..."
+  (
+    cd frontend
+    npm run -s format
+  )
+fi
+
+if [ -n "$BACKEND_STAGED" ]; then
+  echo "Running backend Spotless on staged files..."
+
+  normalize_path() {
+    case "$1" in
+      [A-Za-z]:\\*|[A-Za-z]:/*)
+        if command -v cygpath >/dev/null 2>&1; then
+          cygpath -u "$1"
+        else
+          WIN_PATH=$(printf "%s\n" "$1" | tr '\\' '/')
+          DRIVE_LETTER=$(printf "%s\n" "$WIN_PATH" | cut -c1 | tr 'A-Z' 'a-z')
+          REMAINDER=$(printf "%s\n" "$WIN_PATH" | cut -c3-)
+          printf "/%s/%s\n" "$DRIVE_LETTER" "${REMAINDER#/}"
+        fi
+        ;;
+      *)
+        printf "%s\n" "$1"
+        ;;
+    esac
+  }
+
+  has_java_bin() {
+    JAVA_CANDIDATE=$(normalize_path "$1")
+    [ -x "$JAVA_CANDIDATE/bin/java" ] || [ -x "$JAVA_CANDIDATE/bin/java.exe" ]
+  }
+
+  if [ -n "${JAVA_HOME:-}" ]; then
+    JAVA_HOME=$(normalize_path "$JAVA_HOME")
+    export JAVA_HOME
+  fi
+
+  # Maven wrapper needs JAVA_HOME. Try to infer it from java on PATH first.
+  if { [ -z "${JAVA_HOME:-}" ] || ! has_java_bin "$JAVA_HOME"; } && command -v java >/dev/null 2>&1; then
+    JAVA_BIN=$(normalize_path "$(command -v java)")
+    JAVA_HOME=$(cd "$(dirname "$JAVA_BIN")/.." && pwd -P)
+    export JAVA_HOME
+  fi
+
+  # Fallback for common local JDK layout used by JetBrains.
+  if [ -z "${JAVA_HOME:-}" ] || ! has_java_bin "$JAVA_HOME"; then
+    for JDK_BASE in "${HOME:-}/.jdks" "${USERPROFILE:-}/.jdks"; do
+      JDK_BASE_NORMALIZED=$(normalize_path "$JDK_BASE")
+      if [ -d "$JDK_BASE_NORMALIZED" ]; then
+        JDK_CANDIDATE=$(ls -d "$JDK_BASE_NORMALIZED"/* 2>/dev/null | sort -V | tail -n1 || true)
+        if [ -n "${JDK_CANDIDATE:-}" ] && has_java_bin "$JDK_CANDIDATE"; then
+          JAVA_HOME="$JDK_CANDIDATE"
+          export JAVA_HOME
+          break
+        fi
+      fi
+    done
+  fi
+
+  # Windows default JDK install locations.
+  if [ -z "${JAVA_HOME:-}" ] || ! has_java_bin "$JAVA_HOME"; then
+    for JDK_BASE in '/c/Program Files/Java' '/c/Program Files/Eclipse Adoptium'; do
+      if [ -d "$JDK_BASE" ]; then
+        JDK_CANDIDATE=$(ls -d "$JDK_BASE"/* 2>/dev/null | sort -V | tail -n1 || true)
+        if [ -n "${JDK_CANDIDATE:-}" ] && has_java_bin "$JDK_CANDIDATE"; then
+          JAVA_HOME="$JDK_CANDIDATE"
+          export JAVA_HOME
+          break
+        fi
+      fi
+    done
+  fi
+
+  if [ -z "${JAVA_HOME:-}" ] || ! has_java_bin "$JAVA_HOME"; then
+    echo "ERROR: JAVA_HOME is not set correctly."
+    echo "Set JAVA_HOME to a JDK 21+ installation before committing backend changes."
+    echo "Example (PowerShell): \$env:JAVA_HOME='C:\\Program Files\\Java\\jdk-21'"
+    exit 1
+  fi
+
+  BACKEND_FILES=$(
+    printf "%s\n" "$BACKEND_STAGED" \
+      | sed '/^$/d' \
+      | sed 's#^backend/##' \
+      | paste -sd, -
+  )
+  (
+    cd backend
+    ./mvnw -q spotless:apply "-DspotlessFiles=$BACKEND_FILES"
+  )
+fi
+
+printf "%s\n" "$STAGED_FILES" | sed '/^$/d' | xargs -r git add --

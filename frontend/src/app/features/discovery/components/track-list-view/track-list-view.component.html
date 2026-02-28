@@ -1,0 +1,160 @@
+@if (viewModel$ | async; as vm) {
+  <section class="track-list app-page">
+    <header class="track-list__titlebar app-page__header">
+      <div>
+        <h2 class="app-page__title">Track Catalog</h2>
+        <p class="track-list__muted app-page__subtitle">Game: {{ vm.gameLabel }}</p>
+      </div>
+      <div class="track-list__title-actions app-page__actions">
+        <label class="field-group field-group--inline">
+          <span>Game</span>
+          <select [formControl]="gameControl" aria-label="Select game build" class="field">
+            @for (option of gameOptions; track option.code) {
+              <option [value]="option.code">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+        <span class="summary-chip">Total: {{ vm.totalTracks }}</span>
+        <span class="summary-chip">Visible: {{ vm.filteredCount }}</span>
+        <button (click)="handleRefresh()" class="btn-secondary" type="button">Refresh</button>
+        <button
+          (click)="handleClearFilters()"
+          [disabled]="!(filtersActive$ | async)"
+          class="btn-secondary"
+          type="button"
+        >
+          Clear
+        </button>
+      </div>
+    </header>
+
+    @if (vm.status === 'error') {
+      <article class="state-card state-card--error">
+        <strong>Catalog unavailable.</strong> {{ vm.errorMessage }}
+      </article>
+    }
+
+    <section class="panel-card p-0 track-list__grid-shell">
+      <div class="track-list__table-wrap">
+        <table class="track-list__table" [formGroup]="filtersForm" autocomplete="off">
+          <thead>
+            <tr class="head-row head-row--labels">
+              <th>
+                <button type="button" class="sort-btn" (click)="setNameSort()">
+                  Track
+                  <span class="sort-mark">{{ sortMark('name') }}</span>
+                </button>
+              </th>
+              <th>Circuit</th>
+              <th>
+                <button type="button" class="sort-btn" (click)="setSlugSort()">
+                  Slug
+                  <span class="sort-mark">{{ sortMark('slug') }}</span>
+                </button>
+              </th>
+              <th>
+                <button type="button" class="sort-btn" (click)="toggleLengthSort()">
+                  Length (km)
+                  <span class="sort-mark">{{ sortMark('length') }}</span>
+                </button>
+              </th>
+              <th>Data</th>
+              <th>Actions</th>
+            </tr>
+            <tr class="head-row head-row--filters">
+              <th>
+                <input
+                  class="filter-control"
+                  formControlName="query"
+                  placeholder="Search track/circuit/slug"
+                  type="search"
+                />
+              </th>
+              <th class="filter-placeholder">-</th>
+              <th class="filter-placeholder">-</th>
+              <th class="filter-placeholder">-</th>
+              <th>
+                <app-multi-autocomplete-filter
+                  [dense]="true"
+                  placeholder="Features"
+                  [options]="featureFilterOptions"
+                  [selectedValues]="selectedFeatureFilters"
+                  (selectedValuesChange)="onFeatureFiltersChange($event)"
+                />
+              </th>
+              <th class="filter-placeholder">-</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (vm.status === 'loading') {
+              <tr>
+                <td colspan="6" class="track-list__empty">Loading tracks...</td>
+              </tr>
+            } @else if (vm.status === 'empty') {
+              <tr>
+                <td colspan="6" class="track-list__empty">No tracks match current filters.</td>
+              </tr>
+            } @else if (vm.status === 'error') {
+              <tr>
+                <td colspan="6" class="track-list__empty">Unable to load tracks.</td>
+              </tr>
+            } @else {
+              @for (track of vm.tracks; track trackByTrackId($index, track)) {
+                <tr>
+                  <td>
+                    <div class="row-track">
+                      <div class="thumb-wrap">
+                        @if (track.trackImageUrl) {
+                          <img [alt]="track.title" [src]="track.trackImageUrl" loading="lazy" />
+                        } @else {
+                          <div class="thumb-fallback">{{ track.slug | uppercase }}</div>
+                        }
+                      </div>
+                      <div>
+                        <div class="cell-main">{{ track.title }}</div>
+                        <div class="cell-sub">{{ track.subtitle }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ track.subtitle }}</td>
+                  <td>
+                    <span class="mono">{{ track.slug | uppercase }}</span>
+                  </td>
+                  <td>{{ track.formattedLength }}</td>
+                  <td>
+                    <div class="badge-wrap">
+                      @for (badge of track.badges; track badge) {
+                        <span [attr.data-tone]="badge.tone" class="badge">
+                          {{ badge.label }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <a
+                      class="btn-secondary btn-secondary--tiny"
+                      [routerLink]="['/setups', gameControl.value, track.slug]"
+                    >
+                      Open setups
+                    </a>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-erp-pagination
+        mode="backend"
+        [page]="vm.page"
+        [pageSize]="pageSize"
+        [showPageSize]="false"
+        [totalPages]="vm.totalPages"
+        [totalItems]="vm.totalTracks"
+        entityLabel="tracks"
+        (pageChange)="goToPage($event)"
+      />
+    </section>
+  </section>
+}

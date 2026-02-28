@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: true
+
+jobs:
+  build-artifacts:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Build Backend
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp spotless:check
+          ./mvnw -B -ntp test
+          ./mvnw -B -ntp -DskipTests package
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm format:check
+          pnpm build
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Frontend Tests (Headless)
+        working-directory: frontend
+        run: CHROME_BIN="$(which chrome)" xvfb-run -a pnpm test -- --watch=false --browsers=ChromeHeadlessNoSandbox --code-coverage
+
+      - name: Package Frontend Dist
+        run: tar -C frontend/dist -czf frontend-dist.tar.gz frontend
+
+      - name: Generate Checksums
+        run: |
+          sha256sum backend/target/*.jar > backend-sha256.txt
+          sha256sum frontend-dist.tar.gz > frontend-sha256.txt
+
+      - name: Upload Release Assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: |
+            backend/target/*.jar
+            frontend-dist.tar.gz
+            backend-sha256.txt
+            frontend-sha256.txt
+          if-no-files-found: error
+          retention-days: 30
+
+  github-release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release-assets
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            release-assets/*.jar
+            release-assets/*.tar.gz
+            release-assets/*sha256.txt

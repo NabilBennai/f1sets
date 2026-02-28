@@ -1,0 +1,122 @@
+:host {
+  display: block;
+}
+
+.settings-shell {
+  display: grid;
+  place-items: center;
+}
+
+.settings-card {
+  width: min(100%, 760px);
+  padding: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  color: var(--text-3);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+}
+
+.copy {
+  margin: 0.35rem 0 0;
+  color: var(--text-2);
+}
+
+.avatar-section {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 1px solid var(--surface-stroke);
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+.avatar--fallback {
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.form {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.row {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.two-cols {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field-group span {
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.field {
+  border: 1px solid var(--surface-stroke);
+  border-radius: 0.2rem;
+  padding: 0.45rem 0.55rem;
+  background: var(--surface-1);
+  color: var(--text-1);
+}
+
+.field:focus {
+  outline: 2px solid color-mix(in oklab, var(--brand-1), white 26%);
+  outline-offset: 1px;
+}
+
+.message {
+  margin: 0;
+  border-radius: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.84rem;
+}
+
+.message.error {
+  border: 1px solid color-mix(in oklab, #ef4444, transparent 55%);
+  background: var(--danger-soft);
+  color: color-mix(in oklab, #991b1b, var(--text-1) 45%);
+}
+
+.message.success {
+  border: 1px solid color-mix(in oklab, #22c55e, transparent 55%);
+  background: var(--success-soft);
+  color: color-mix(in oklab, #14532d, var(--text-1) 45%);
+}
+
+@media (max-width: 760px) {
+  .two-cols {
+    grid-template-columns: 1fr;
+  }
+}

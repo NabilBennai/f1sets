@@ -1,0 +1,103 @@
+<header class="panel navbar">
+  <div class="navbar__row">
+    <div class="navbar__brand">
+      <h1>F1 Sets</h1>
+      <p>Race Setup Hub</p>
+    </div>
+
+    @if (user$ | async; as user) {
+      <nav aria-label="Primary" class="navbar__nav">
+        <a class="navbar__link" routerLink="/home" routerLinkActive="is-active"> Home </a>
+        <a
+          [routerLinkActiveOptions]="{exact: true}"
+          class="navbar__link"
+          routerLink="/discovery"
+          routerLinkActive="is-active"
+        >
+          Track Catalog
+        </a>
+        <a
+          [routerLinkActiveOptions]="{exact: false}"
+          class="navbar__link"
+          routerLink="/setups"
+          routerLinkActive="is-active"
+        >
+          Setups
+        </a>
+        @if (user.role === 'ADMIN') {
+          <div #adminMenu class="admin-menu">
+            <button
+              (click)="toggleAdminDropdown($event)"
+              class="admin-menu__trigger navbar__link"
+              type="button"
+            >
+              Admin
+            </button>
+            @if (adminDropdownOpen) {
+              <div (click)="onMenuClick($event)" class="admin-menu__dropdown panel-card">
+                <a
+                  (click)="closeAdminDropdown()"
+                  class="admin-menu__item"
+                  routerLink="/admin/tracks"
+                  >Admin tracks</a
+                >
+                <a
+                  (click)="closeAdminDropdown()"
+                  class="admin-menu__item"
+                  routerLink="/admin/setup-fields"
+                  >Admin setups</a
+                >
+                <a (click)="closeAdminDropdown()" class="admin-menu__item" routerLink="/admin/logs"
+                  >Admin logs</a
+                >
+              </div>
+            }
+          </div>
+        }
+        <div #accountMenu class="account-menu">
+          <button (click)="toggleDropdown($event)" class="account-menu__trigger" type="button">
+            @if (avatarUrl) {
+              <img [src]="avatarUrl" alt="Profile avatar" class="account-menu__avatar" />
+            } @else {
+              <span class="account-menu__avatar account-menu__avatar--fallback">
+                {{ user.displayName.charAt(0).toUpperCase() }}
+              </span>
+            }
+            <span class="account-menu__name">{{ user.displayName }}</span>
+          </button>
+          @if (dropdownOpen) {
+            <div (click)="onMenuClick($event)" class="account-menu__dropdown panel-card">
+              <a (click)="closeDropdown()" class="account-menu__item" routerLink="/profile"
+                >Profile Page</a
+              >
+              <a (click)="closeDropdown()" class="account-menu__item" routerLink="/profile/settings"
+                >Profile Settings</a
+              >
+              <a
+                (click)="closeDropdown()"
+                class="account-menu__item"
+                routerLink="/auth/change-password"
+                >Change Password</a
+              >
+              <button
+                (click)="logout()"
+                class="account-menu__item account-menu__item--danger"
+                type="button"
+              >
+                Logout
+              </button>
+            </div>
+          }
+        </div>
+      </nav>
+    } @else {
+      <nav aria-label="Primary" class="navbar__nav">
+        <a class="navbar__link" routerLink="/home" routerLinkActive="is-active"> Home </a>
+        <a class="navbar__link" routerLink="/auth/login" routerLinkActive="is-active"> Login </a>
+        <a class="navbar__link" routerLink="/auth/register" routerLinkActive="is-active">
+          Register
+        </a>
+      </nav>
+    }
+  </div>
+</header>

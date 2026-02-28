@@ -1,0 +1,277 @@
+<section class="admin-logs app-page">
+  <header class="admin-logs__titlebar app-page__header">
+    <div>
+      <h2 class="app-page__title">Admin Logs</h2>
+      <p class="admin-logs__muted app-page__subtitle">
+        ERP grid mode: header filters, server sort, JSON drill-down.
+      </p>
+    </div>
+    <div class="admin-logs__title-actions app-page__actions">
+      <button type="button" class="btn-secondary" [disabled]="loading" (click)="refresh()">
+        Refresh
+      </button>
+      <button type="button" class="btn-secondary" [disabled]="loading" (click)="clearFilters()">
+        Clear
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <article class="state-card state-card--error">{{ errorMessage }}</article>
+  }
+
+  <section class="panel-card p-0 admin-logs__grid-shell">
+    <div class="admin-logs__table-wrap">
+      <table class="admin-logs__table" [formGroup]="filters">
+        <thead>
+          <tr class="head-row head-row--labels">
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('createdAt')">
+                Timestamp
+                <span class="sort-mark">{{ sortMark('createdAt') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('level')">
+                Level
+                <span class="sort-mark">{{ sortMark('level') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('httpMethod')">
+                Method
+                <span class="sort-mark">{{ sortMark('httpMethod') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('path')">
+                Path
+                <span class="sort-mark">{{ sortMark('path') }}</span>
+              </button>
+            </th>
+            <th>Query</th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('statusCode')">
+                Status
+                <span class="sort-mark">{{ sortMark('statusCode') }}</span>
+              </button>
+            </th>
+            <th>
+              <button type="button" class="sort-btn" (click)="setSort('durationMs')">
+                Duration
+                <span class="sort-mark">{{ sortMark('durationMs') }}</span>
+              </button>
+            </th>
+            <th>User</th>
+            <th>IP</th>
+            <th>JSON</th>
+          </tr>
+
+          <tr class="head-row head-row--filters">
+            <th>
+              <div class="filter-stack">
+                <input
+                  class="filter-control"
+                  type="datetime-local"
+                  formControlName="createdFrom"
+                  placeholder="from"
+                />
+                <input
+                  class="filter-control"
+                  type="datetime-local"
+                  formControlName="createdTo"
+                  placeholder="to"
+                />
+              </div>
+            </th>
+            <th>
+              <app-multi-autocomplete-filter
+                [dense]="true"
+                placeholder="Level"
+                [options]="levelOptions"
+                [selectedValues]="selectedLevels"
+                (selectedValuesChange)="onLevelsChange($event)"
+              />
+            </th>
+            <th>
+              <app-multi-autocomplete-filter
+                [dense]="true"
+                placeholder="Method"
+                [options]="methodOptions"
+                [selectedValues]="selectedMethods"
+                (selectedValuesChange)="onMethodsChange($event)"
+              />
+            </th>
+            <th>
+              <input
+                class="filter-control"
+                formControlName="pathContains"
+                placeholder="Contains path"
+              />
+            </th>
+            <th class="filter-placeholder">-</th>
+            <th>
+              <app-multi-autocomplete-filter
+                [dense]="true"
+                placeholder="Status"
+                [options]="statusOptions"
+                [selectedValues]="selectedStatuses"
+                (selectedValuesChange)="onStatusesChange($event)"
+              />
+            </th>
+            <th class="filter-placeholder">-</th>
+            <th>
+              <input
+                class="filter-control"
+                formControlName="userEmailContains"
+                placeholder="Email contains"
+              />
+            </th>
+            <th class="filter-placeholder">-</th>
+            <th class="filter-placeholder">-</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (!loading && logs.length === 0) {
+            <tr>
+              <td colspan="10" class="admin-logs__empty">No logs match current filters.</td>
+            </tr>
+          }
+
+          @for (log of logs; track trackByLogId($index, log)) {
+            <tr>
+              <td (contextmenu)="openContextMenu($event, 'createdAt', log.createdAt)">
+                {{ log.createdAt | date: 'yyyy-MM-dd HH:mm:ss' }}
+              </td>
+              <td>
+                <span
+                  class="level-pill"
+                  [class]="'level-pill level-pill--' + log.level.toLowerCase()"
+                  (contextmenu)="openContextMenu($event, 'level', log.level)"
+                >
+                  {{ log.level }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="method-tag"
+                  (contextmenu)="openContextMenu($event, 'httpMethod', log.httpMethod)"
+                  >{{ log.httpMethod }}</span
+                >
+              </td>
+              <td (contextmenu)="openContextMenu($event, 'path', log.path)">
+                <div class="cell-main">{{ log.path }}</div>
+                @if (log.message) {
+                  <div class="cell-sub">{{ log.message }}</div>
+                }
+              </td>
+              <td (contextmenu)="openContextMenu($event, 'queryString', log.queryString || '')">
+                {{ log.queryString || '-' }}
+              </td>
+              <td>
+                <span
+                  class="status-chip"
+                  (contextmenu)="openContextMenu($event, 'statusCode', log.statusCode)"
+                  >{{ log.statusCode }}</span
+                >
+              </td>
+              <td>{{ log.durationMs }} ms</td>
+              <td (contextmenu)="openContextMenu($event, 'userEmail', log.userEmail || '')">
+                <div class="cell-main">{{ log.userEmail || 'anonymous' }}</div>
+                <div class="cell-sub">{{ log.userRole || '-' }}</div>
+              </td>
+              <td (contextmenu)="openContextMenu($event, 'clientIp', log.clientIp || '')">
+                {{ log.clientIp || '-' }}
+              </td>
+              <td>
+                <div class="json-actions">
+                  <button
+                    type="button"
+                    class="btn-secondary btn-secondary--tiny"
+                    (click)="openRequestJson(log)"
+                  >
+                    Req
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-secondary btn-secondary--tiny"
+                    (click)="openResponseJson(log)"
+                  >
+                    Res
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-erp-pagination
+      mode="backend"
+      [page]="page"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      [totalPages]="totalPages"
+      [totalItems]="totalElements"
+      [loading]="loading"
+      entityLabel="rows"
+      (pageChange)="onPaginationPageChange($event)"
+      (pageSizeChange)="onPaginationPageSizeChange($event)"
+    />
+  </section>
+</section>
+
+@if (jsonModalOpen) {
+  <div class="json-modal-backdrop" (click)="closeJsonModal()">
+    <section class="json-modal panel-card" (click)="$event.stopPropagation()">
+      <header class="json-modal__header">
+        <h3>{{ jsonModalTitle }}</h3>
+        <div class="json-modal__actions">
+          <button
+            type="button"
+            class="btn-secondary btn-secondary--tiny"
+            (click)="copyJsonModalContent()"
+          >
+            Copy JSON
+          </button>
+          <button
+            type="button"
+            class="btn-secondary btn-secondary--tiny"
+            (click)="closeJsonModal()"
+          >
+            Close
+          </button>
+        </div>
+      </header>
+      <div class="json-modal__content">
+        @for (line of jsonModalLines; track line.number) {
+          <div class="json-line">
+            <span class="json-line__number">{{ line.number }}</span>
+            <span class="json-line__text" [innerHTML]="line.html"></span>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}
+
+@if (contextMenuOpen) {
+  <div
+    class="context-menu"
+    [style.left.px]="contextMenuX"
+    [style.top.px]="contextMenuY"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="context-menu__item" (click)="copyContextValue()">
+      Copy value
+    </button>
+    <button type="button" class="context-menu__item" (click)="filterByContextValue()">
+      Filter by this value
+    </button>
+    <button type="button" class="context-menu__item" (click)="clearContextColumnFilter()">
+      Clear this filter
+    </button>
+  </div>
+}

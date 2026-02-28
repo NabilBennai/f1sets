@@ -1,0 +1,44 @@
+<section class="home">
+  <header class="hero panel">
+    <div class="hero__copy">
+      <p class="hero__eyebrow">F1 Sets Platform</p>
+      <h1>Build Faster Race Weekends With Smarter Setup Data</h1>
+      <p class="hero__text">
+        Discover track insights, filter for relevant builds, and move from browsing to action in
+        seconds.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn-primary" routerLink="/discovery">Explore Track Catalog</a>
+        <a class="btn-secondary" href="#why-f1sets">See Why Drivers Use It</a>
+      </div>
+    </div>
+
+    <div aria-label="Platform highlights" class="hero__stats">
+      @for (item of highlights; track item) {
+        <article class="stat-card">
+          <p class="stat-card__value">{{ item.value }}</p>
+          <p class="stat-card__label">{{ item.label }}</p>
+        </article>
+      }
+    </div>
+  </header>
+
+  <section class="feature-grid" id="why-f1sets">
+    @for (feature of features; track feature; let i = $index) {
+      <article [style.--delay]="i" class="feature-card panel-card">
+        <p class="feature-card__index">0{{ i + 1 }}</p>
+        <h2>{{ feature.title }}</h2>
+        <p>{{ feature.description }}</p>
+      </article>
+    }
+  </section>
+
+  <section class="panel cta">
+    <div>
+      <p class="cta__eyebrow">Start Your Next Session</p>
+      <h2>Open the catalog and pick the perfect baseline in minutes.</h2>
+    </div>
+    <a class="btn-primary" routerLink="/discovery">Go To Track Catalog</a>
+  </section>
+</section>

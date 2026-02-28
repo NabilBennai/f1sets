@@ -1,0 +1,41 @@
+<section class="auth-shell">
+  <article class="panel auth-card">
+    <p class="auth-eyebrow">Create Account</p>
+    <h1>Join F1 Sets</h1>
+    <p class="auth-copy">Set up your profile to manage your setup journey securely.</p>
+
+    <form (ngSubmit)="submit()" [formGroup]="form" class="auth-form" novalidate>
+      <label class="field-group">
+        <span>Display Name</span>
+        <input autocomplete="name" class="field" formControlName="displayName" type="text" />
+      </label>
+
+      <label class="field-group">
+        <span>Email</span>
+        <input autocomplete="email" class="field" formControlName="email" type="email" />
+      </label>
+
+      <label class="field-group">
+        <span>Password</span>
+        <input
+          autocomplete="new-password"
+          class="field"
+          formControlName="password"
+          type="password"
+        />
+      </label>
+
+      @if (errorMessage) {
+        <p class="auth-error">{{ errorMessage }}</p>
+      }
+
+      <button [disabled]="loading" class="btn-primary w-full" type="submit">
+        {{ loading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+
+    <div class="auth-links">
+      <a routerLink="/auth/login">Already have an account? Sign in</a>
+    </div>
+  </article>
+</section>

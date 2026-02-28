@@ -1,0 +1,59 @@
+@if (vm$ | async; as vm) {
+  <section class="profile-shell">
+    @if (vm.errorMessage) {
+      <article class="panel state-card error">
+        <h1>Profile unavailable</h1>
+        <p>{{ vm.errorMessage }}</p>
+      </article>
+    }
+    @if (vm.profile; as profile) {
+      <article class="panel profile-card">
+        <div class="profile-header">
+          @if (profile.avatarUrl) {
+            <img
+              [alt]="profile.displayName + ' avatar'"
+              [src]="profile.avatarUrl"
+              class="profile-avatar"
+            />
+          } @else {
+            <div class="profile-avatar profile-avatar--fallback">
+              {{ (profile.displayName || 'U').charAt(0).toUpperCase() }}
+            </div>
+          }
+          <div class="profile-meta">
+            <p class="eyebrow">Driver Profile</p>
+            <h1>{{ profile.displayName }}</h1>
+            <p class="meta-line">
+              {{ profile.firstName || 'First name not set' }} {{ profile.lastName || '' }}
+            </p>
+            @if (profile.country) {
+              <p class="meta-line">{{ profile.country }}</p>
+            }
+          </div>
+        </div>
+        <div class="profile-grid">
+          <div class="panel-card stat">
+            <p class="label">Date of Birth</p>
+            <p class="value">{{ profile.dateOfBirth || 'Not specified' }}</p>
+          </div>
+          <div class="panel-card stat">
+            <p class="label">Languages</p>
+            <p class="value">{{ toLanguageLine(profile.languages) }}</p>
+          </div>
+          <div class="panel-card stat">
+            <p class="label">Visibility</p>
+            <p class="value">{{ profile.visibility }}</p>
+          </div>
+        </div>
+        @if (vm.showSettingsLink) {
+          <div class="actions">
+            <a class="btn-primary" routerLink="/profile/settings">Edit Profile Settings</a>
+            <a [routerLink]="['/profile', profile.userId]" class="btn-secondary"
+              >View Public Link</a
+            >
+          </div>
+        }
+      </article>
+    }
+  </section>
+}

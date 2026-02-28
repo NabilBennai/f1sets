@@ -1,0 +1,63 @@
+<section class="admin-setup space-y-3">
+  <header class="panel-card p-3">
+    <h2 class="text-lg font-semibold">Admin Setup Fields</h2>
+    <p class="text-sm admin-setup__muted">Define setup form fields per game.</p>
+  </header>
+
+  @if (errorMessage) {
+    <article class="state-card state-card--error">{{ errorMessage }}</article>
+  }
+  @if (successMessage) {
+    <article class="state-card state-card--success">
+      {{ successMessage }}
+    </article>
+  }
+
+  <section class="panel-card p-3 space-y-3">
+    <label class="field-group max-w-xs">
+      <span>Game</span>
+      <app-game-autocomplete-input [formControl]="gameControl" />
+    </label>
+    <div class="flex gap-2">
+      <button type="button" class="btn-secondary" (click)="loadSchema()" [disabled]="loading">
+        {{ loading ? 'Loading...' : 'Load schema' }}
+      </button>
+      <button type="button" class="btn-secondary" (click)="addField()">Add field</button>
+    </div>
+
+    <div class="admin-setup__table" [formGroup]="form">
+      <div formArrayName="fields">
+        @for (group of fieldsArray.controls; track group; let i = $index) {
+          <article class="admin-setup__row" [formGroupName]="i">
+            <input
+              class="field"
+              formControlName="fieldKey"
+              placeholder="field key (e.g. front_wing)"
+            />
+            <input class="field" formControlName="fieldLabel" placeholder="Field label" />
+            <select class="field" formControlName="fieldType">
+              @for (type of fieldTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+            <label class="admin-setup__check">
+              <input type="checkbox" formControlName="required" />
+              Required
+            </label>
+            <input class="field" type="number" formControlName="sortOrder" placeholder="Order" />
+            <input
+              class="field"
+              formControlName="selectOptionsRaw"
+              placeholder="Select options (comma separated)"
+            />
+            <button type="button" class="btn-secondary" (click)="removeField(i)">Remove</button>
+          </article>
+        }
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" (click)="save()" [disabled]="saving">
+      {{ saving ? 'Saving...' : 'Save schema' }}
+    </button>
+  </section>
+</section>

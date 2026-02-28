@@ -1,0 +1,76 @@
+<footer class="erp-pager">
+  @if (showSummary) {
+    <div class="erp-pager__summary">Total {{ totalItems }} {{ entityLabel }}</div>
+  }
+
+  <div class="erp-pager__controls">
+    @if (showPageSize) {
+      <label class="erp-pager__size">
+        <span>Rows</span>
+        <select
+          class="erp-pager__select"
+          [disabled]="loading"
+          [value]="pageSize"
+          (change)="onPageSizeSelect($any($event.target).value)"
+        >
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    <div class="erp-pager__nav">
+      <button
+        type="button"
+        class="btn-secondary btn-secondary--tiny"
+        [disabled]="!canGoPrev"
+        (click)="goFirst()"
+      >
+        First
+      </button>
+      <button
+        type="button"
+        class="btn-secondary btn-secondary--tiny"
+        [disabled]="!canGoPrev"
+        (click)="goPrev()"
+      >
+        Prev
+      </button>
+
+      <span class="erp-pager__page">Page {{ page + 1 }} / {{ effectiveTotalPages }}</span>
+
+      @if (showPageInput) {
+        <label class="erp-pager__jump">
+          <span>Go</span>
+          <input
+            class="erp-pager__input"
+            type="number"
+            min="1"
+            [max]="effectiveTotalPages"
+            [disabled]="loading"
+            [(ngModel)]="pageInput"
+            (keydown.enter)="applyPageInput()"
+          />
+        </label>
+      }
+
+      <button
+        type="button"
+        class="btn-secondary btn-secondary--tiny"
+        [disabled]="!canGoNext"
+        (click)="goNext()"
+      >
+        Next
+      </button>
+      <button
+        type="button"
+        class="btn-secondary btn-secondary--tiny"
+        [disabled]="!canGoNext"
+        (click)="goLast()"
+      >
+        Last
+      </button>
+    </div>
+  </div>
+</footer>

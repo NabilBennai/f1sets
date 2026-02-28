@@ -1,0 +1,500 @@
+<section class="setup-page app-page">
+  <header class="setup-hero app-page__header">
+    <div>
+      <p class="setup-hero__kicker">Setup Workspace</p>
+      <h2 class="app-page__title">Community setups</h2>
+      <p class="setup-hero__lead app-page__subtitle">
+        Rate, compare, report, and share setups with context-aware filters.
+      </p>
+    </div>
+    <div class="setup-hero__stats">
+      <span class="setup-chip">Game: {{ gameCode ? (gameCode | uppercase) : 'All' }}</span>
+      <span class="setup-chip">Track: {{ trackSlug ? (trackSlug | uppercase) : 'All' }}</span>
+      <span class="setup-chip">Total: {{ totalSetups }}</span>
+    </div>
+    <div class="setup-hero__actions">
+      <button type="button" class="btn-primary" (click)="openPublishModal()">Publish setup</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <article class="state-card state-card--error">{{ errorMessage }}</article>
+  }
+  @if (successMessage) {
+    <article class="state-card state-card--success">{{ successMessage }}</article>
+  }
+
+  @if (recommendedSetups.length > 0) {
+    <article class="panel-card setup-recommended">
+      <h3>Recommended for you</h3>
+      <div class="setup-recommended__list">
+        @for (setup of recommendedSetups; track setup) {
+          <button type="button" class="setup-recommended__item" (click)="openRecommended(setup)">
+            <strong>{{ setup.title }}</strong>
+            <span>{{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }}</span>
+            <small>Score {{ setup.score }}</small>
+          </button>
+        }
+      </div>
+    </article>
+  }
+
+  <div class="setup-main">
+    <article class="panel-card setup-catalog">
+      <div class="setup-catalog__head">
+        <h3>Setup catalog</h3>
+        <div class="setup-catalog__head-actions">
+          <span class="setup-chip">{{ filteredSetups }} / {{ totalSetups }} results</span>
+          <button type="button" class="btn-secondary btn-secondary--tiny" (click)="clearSearch()">
+            Reset Filters
+          </button>
+        </div>
+      </div>
+      @if (activeFilterTags.length > 0) {
+        <div class="setup-active-filters">
+          @for (tag of activeFilterTags; track tag.key + ':' + tag.value) {
+            <button type="button" class="setup-filter-tag" (click)="removeFilterTag(tag)">
+              <span>{{ tag.label }}</span>
+              <strong>×</strong>
+            </button>
+          }
+        </div>
+      }
+      @if (loading) {
+        <p class="setup-muted">Loading setups...</p>
+      }
+      @if (!loading && treeRows.length === 0) {
+        <p class="setup-empty">No setups found.</p>
+      }
+      @if (!loading) {
+        <div class="setup-tree-wrap">
+          <table class="setup-tree" [formGroup]="searchForm">
+            <thead>
+              <tr>
+                <th>Hierarchy</th>
+                <th>Title</th>
+                <th>Score</th>
+                <th>Votes</th>
+                <th>Created</th>
+              </tr>
+              <tr class="setup-tree__filters">
+                <th>
+                  <div class="filter-cell filter-cell--stack">
+                    <app-multi-autocomplete-filter
+                      [dense]="true"
+                      placeholder="Game"
+                      [options]="gameFilterOptions"
+                      [selectedValues]="selectedGameFilters"
+                      (selectedValuesChange)="onGameFiltersChange($event)"
+                    />
+                    <app-multi-autocomplete-filter
+                      [dense]="true"
+                      placeholder="Track"
+                      [options]="trackFilterOptions"
+                      [selectedValues]="selectedTrackFilters"
+                      (selectedValuesChange)="onTrackFiltersChange($event)"
+                    />
+                  </div>
+                </th>
+                <th>
+                  <input
+                    class="field field--dense"
+                    formControlName="query"
+                    placeholder="Search title/notes"
+                  />
+                </th>
+                <th class="filter-placeholder">-</th>
+                <th>
+                  <div class="filter-cell filter-cell--split">
+                    <app-multi-autocomplete-filter
+                      [dense]="true"
+                      placeholder="Session"
+                      [options]="sessionFilterOptions"
+                      [selectedValues]="selectedSessionFilters"
+                      (selectedValuesChange)="onSessionFiltersChange($event)"
+                    />
+                    <app-multi-autocomplete-filter
+                      [dense]="true"
+                      placeholder="Weather"
+                      [options]="weatherFilterOptions"
+                      [selectedValues]="selectedWeatherFilters"
+                      (selectedValuesChange)="onWeatherFiltersChange($event)"
+                    />
+                  </div>
+                </th>
+                <th>
+                  <app-multi-autocomplete-filter
+                    [dense]="true"
+                    placeholder="Input"
+                    [options]="inputDeviceFilterOptions"
+                    [selectedValues]="selectedInputFilters"
+                    (selectedValuesChange)="onInputFiltersChange($event)"
+                  />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of treeRows; track trackByTreeRow($index, row)) {
+                @if (row.type === 'group') {
+                  <tr class="setup-tree__group" [class]="'setup-tree__group level-' + row.level">
+                    <td colspan="5" [style.padding-left.px]="10 + row.level * 20">
+                      <button type="button" class="tree-toggle" (click)="toggleGroup(row)">
+                        <span class="tree-toggle__mark">{{
+                          isGroupExpanded(row) ? '▼' : '▶'
+                        }}</span>
+                        <strong>{{ row.label }}</strong>
+                        <span class="setup-chip">{{ row.count }}</span>
+                      </button>
+                    </td>
+                  </tr>
+                } @else {
+                  <tr class="setup-tree__leaf" (click)="openSetupModal(row.setup)">
+                    <td [style.padding-left.px]="10 + row.level * 20">
+                      <span class="setup-tree__leaf-path"
+                        >{{ row.setup.gameCode | uppercase }} /
+                        {{ row.setup.trackSlug | uppercase }}
+                      </span>
+                    </td>
+                    <td>{{ row.setup.title }}</td>
+                    <td>{{ row.setup.score }}</td>
+                    <td>{{ row.setup.upvotes }} / {{ row.setup.downvotes }}</td>
+                    <td>{{ row.setup.createdAt | date: 'dd MMM yyyy, HH:mm' }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <app-erp-pagination
+        mode="backend"
+        [page]="page"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [totalPages]="totalPages"
+        [totalItems]="totalSetups"
+        [loading]="loading"
+        entityLabel="setups"
+        (pageChange)="onPaginationPageChange($event)"
+        (pageSizeChange)="onPaginationPageSizeChange($event)"
+      />
+    </article>
+  </div>
+
+  @if (publishModalOpen) {
+    <div class="setup-modal-backdrop" (click)="closePublishModal()">
+      <article
+        class="setup-modal setup-modal--publish panel-card"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="setup-modal__head">
+          <div>
+            <h3>Publish setup</h3>
+            <p>{{ gameCode | uppercase }} / {{ trackSlug | uppercase }}</p>
+          </div>
+          <div class="setup-modal__head-actions">
+            <button type="button" class="setup-btn setup-btn--cancel" (click)="closePublishModal()">
+              Close
+            </button>
+          </div>
+        </header>
+        <form [formGroup]="publishForm" class="setup-publish__form">
+          <label class="field-group">
+            <span>Title</span>
+            <input class="field" formControlName="title" type="text" />
+          </label>
+          <label class="field-group">
+            <span>Notes</span>
+            <textarea class="field" formControlName="notes" rows="3"></textarea>
+          </label>
+          <div class="setup-context-grid">
+            <label class="field-group">
+              <span>Session</span>
+              <select class="field" formControlName="sessionType">
+                @for (item of sessionOptions; track item) {
+                  <option [value]="item">{{ item }}</option>
+                }
+              </select>
+            </label>
+            <label class="field-group">
+              <span>Weather</span>
+              <select class="field" formControlName="weatherCondition">
+                @for (item of weatherOptions; track item) {
+                  <option [value]="item">{{ item }}</option>
+                }
+              </select>
+            </label>
+            <label class="field-group">
+              <span>Assists</span>
+              <input class="field" formControlName="assistsPreset" type="text" />
+            </label>
+            <label class="field-group">
+              <span>Input</span>
+              <select class="field" formControlName="inputDevice">
+                @for (item of inputDeviceOptions; track item) {
+                  <option [value]="item">{{ item }}</option>
+                }
+              </select>
+            </label>
+            <label class="field-group">
+              <span>Fuel kg</span>
+              <input class="field" formControlName="fuelLoadKg" type="number" />
+            </label>
+            <label class="field-group">
+              <span>Tyre</span>
+              <input class="field" formControlName="tyreCompound" type="text" />
+            </label>
+          </div>
+          @if (setupFields.length > 0) {
+            <div class="setup-fields">
+              <h4>Setup fields</h4>
+              <div class="setup-fields__grid">
+                @for (field of setupFields; track field) {
+                  @if (field.fieldType !== 'BOOLEAN') {
+                    <label class="field-group">
+                      <span>{{ field.fieldLabel }}</span>
+                      @if (field.fieldType === 'TEXT') {
+                        <input
+                          class="field"
+                          type="text"
+                          [formControl]="getFieldControl(field.fieldKey)"
+                        />
+                      }
+                      @if (field.fieldType === 'NUMBER') {
+                        <input
+                          class="field"
+                          type="number"
+                          [formControl]="getFieldControl(field.fieldKey)"
+                        />
+                      }
+                      @if (field.fieldType === 'SELECT') {
+                        <select class="field" [formControl]="getFieldControl(field.fieldKey)">
+                          <option value="">Select...</option>
+                          @for (option of field.selectOptions; track option) {
+                            <option [value]="option">{{ option }}</option>
+                          }
+                        </select>
+                      }
+                    </label>
+                  } @else {
+                    <label class="setup-fields__checkbox"
+                      ><input
+                        type="checkbox"
+                        [formControl]="getFieldControl(field.fieldKey)"
+                      /><span>{{ field.fieldLabel }}</span></label
+                    >
+                  }
+                }
+              </div>
+            </div>
+          }
+          <div class="setup-publish__actions">
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="publish()"
+              [disabled]="publishing || setupFields.length === 0"
+            >
+              {{ publishing ? 'Publishing...' : 'Publish setup' }}
+            </button>
+            <label class="setup-import-btn">
+              Import setup JSON
+              <input type="file" accept="application/json" (change)="importSetupFile($event)" />
+            </label>
+          </div>
+        </form>
+      </article>
+    </div>
+  }
+
+  @if (selectedSetup; as setup) {
+    <div class="setup-modal-backdrop" (click)="onModalBackdropClick($event)">
+      <article class="setup-modal panel-card" (click)="$event.stopPropagation()">
+        <header class="setup-modal__head">
+          <div>
+            <h3>{{ setup.title }}</h3>
+            <p>
+              {{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }} •
+              {{ setup.createdAt | date: 'dd MMM yyyy, HH:mm' }}
+            </p>
+          </div>
+          <div class="setup-modal__head-actions">
+            <button type="button" class="setup-btn setup-btn--cancel" (click)="copyShareLink()">
+              Share
+            </button>
+            <button
+              type="button"
+              class="setup-btn setup-btn--cancel"
+              (click)="exportSelectedSetup()"
+            >
+              Export
+            </button>
+            <button type="button" class="setup-btn setup-btn--cancel" (click)="closeSetupModal()">
+              Close
+            </button>
+          </div>
+        </header>
+        <div class="setup-modal__meta">
+          <span class="setup-chip">Score {{ setup.score }}</span>
+          <span class="setup-chip">👍 {{ setup.upvotes }}</span>
+          <span class="setup-chip">👎 {{ setup.downvotes }}</span>
+          <span class="setup-chip">Session {{ setup.sessionType || '-' }}</span>
+          <span class="setup-chip">Weather {{ setup.weatherCondition || '-' }}</span>
+          <span class="setup-chip">Input {{ setup.inputDevice || '-' }}</span>
+        </div>
+        <div class="setup-card__actions">
+          <button
+            type="button"
+            class="setup-btn setup-btn--edit"
+            [class.is-active]="setup.userVote === 1"
+            (click)="vote(setup, 1)"
+          >
+            Upvote
+          </button>
+          <button
+            type="button"
+            class="setup-btn setup-btn--delete"
+            [class.is-active]="setup.userVote === -1"
+            (click)="vote(setup, -1)"
+          >
+            Downvote
+          </button>
+          @if (canEdit(setup)) {
+            <button type="button" class="setup-btn setup-btn--cancel" (click)="beginEdit(setup)">
+              Edit
+            </button>
+          }
+          @if (canEdit(setup)) {
+            <button
+              type="button"
+              class="setup-btn setup-btn--delete"
+              [disabled]="deletingSetupId === setup.id"
+              (click)="deleteSetup(setup)"
+            >
+              Delete
+            </button>
+          }
+          @if (isAdmin() && !setup.hidden) {
+            <button type="button" class="setup-btn setup-btn--delete" (click)="hideSelectedSetup()">
+              Hide
+            </button>
+          }
+          @if (isAdmin() && setup.hidden) {
+            <button type="button" class="setup-btn setup-btn--edit" (click)="unhideSelectedSetup()">
+              Unhide
+            </button>
+          }
+        </div>
+        <label class="field-group">
+          <span>Report setup</span>
+          <div class="setup-report-row">
+            <input
+              class="field"
+              [(ngModel)]="reportReason"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Reason"
+            />
+            <button
+              type="button"
+              class="setup-btn setup-btn--cancel"
+              (click)="reportSelectedSetup()"
+            >
+              Report
+            </button>
+          </div>
+        </label>
+        <label class="field-group">
+          <span>Compare with</span>
+          <select class="field" [(ngModel)]="compareSetupId" [ngModelOptions]="{standalone: true}">
+            <option [ngValue]="null">No comparison</option>
+            @for (candidate of compareCandidates; track candidate) {
+              <option [ngValue]="candidate.id">
+                {{ candidate.title }} ({{ candidate.trackSlug }})
+              </option>
+            }
+          </select>
+        </label>
+        @if (editingSetupId !== setup.id) {
+          <p class="setup-card__notes">{{ setup.notes || 'No description provided.' }}</p>
+          @if (setupFields.length > 0) {
+            <div class="setup-compare">
+              @for (field of setupFields; track field) {
+                <div class="setup-values__row" [class.is-different]="isDifferent(field)">
+                  <span class="setup-values__key">{{ field.fieldLabel }}</span>
+                  <span class="setup-values__value">{{ formatSetupValue(setup, field) }}</span>
+                  @if (compareSetup) {
+                    <span class="setup-values__value">{{
+                      formatSetupValue(compareSetup, field)
+                    }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="setup-edit">
+            <label class="field-group"
+              ><span>Title</span
+              ><input class="field" [(ngModel)]="editTitle" [ngModelOptions]="{standalone: true}"
+            /></label>
+            <label class="field-group"
+              ><span>Notes</span
+              ><textarea
+                class="field"
+                rows="3"
+                [(ngModel)]="editNotes"
+                [ngModelOptions]="{standalone: true}"
+              ></textarea>
+            </label>
+            <div class="setup-fields__grid">
+              @for (field of setupFields; track field) {
+                @if (field.fieldType !== 'BOOLEAN') {
+                  <label class="field-group">
+                    <span>{{ field.fieldLabel }}</span>
+                    @if (field.fieldType === 'TEXT') {
+                      <input
+                        class="field"
+                        type="text"
+                        [formControl]="getEditFieldControl(field.fieldKey)"
+                      />
+                    }
+                    @if (field.fieldType === 'NUMBER') {
+                      <input
+                        class="field"
+                        type="number"
+                        [formControl]="getEditFieldControl(field.fieldKey)"
+                      />
+                    }
+                    @if (field.fieldType === 'SELECT') {
+                      <select class="field" [formControl]="getEditFieldControl(field.fieldKey)">
+                        <option value="">Select...</option>
+                        @for (option of field.selectOptions; track option) {
+                          <option [value]="option">{{ option }}</option>
+                        }
+                      </select>
+                    }
+                  </label>
+                } @else {
+                  <label class="setup-fields__checkbox"
+                    ><input
+                      type="checkbox"
+                      [formControl]="getEditFieldControl(field.fieldKey)"
+                    /><span>{{ field.fieldLabel }}</span></label
+                  >
+                }
+              }
+            </div>
+            <div class="setup-card__actions">
+              <button type="button" class="setup-btn setup-btn--save" (click)="saveEdit(setup)">
+                Save changes
+              </button>
+              <button type="button" class="setup-btn setup-btn--cancel" (click)="cancelEdit()">
+                Cancel edit
+              </button>
+            </div>
+          </div>
+        }
+      </article>
+    </div>
+  }
+</section>
