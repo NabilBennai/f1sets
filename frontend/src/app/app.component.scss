@@ -1,16 +1,5 @@
 :host {
   display: block;
   height: 100%;
-}
-
-.page-shell {
-  height: 100dvh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 0.75rem;
-}
-
-.app-content {
-  min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }

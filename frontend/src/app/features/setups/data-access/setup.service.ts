@@ -3,6 +3,9 @@ import {Injectable} from '@angular/core';
 import {map, Observable} from 'rxjs';
 import {environment} from '../../../../environments/environment';
 import {
+  AiDifficultyCalculationResponse,
+  AiDifficultyCurve,
+  CalculateAiDifficultyPayload,
   PublishSetupPayload,
   SetupFieldDefinition,
   SetupFieldSchemaResponse,
@@ -109,5 +112,26 @@ export class SetupService {
         `${this.apiBaseUrl}/public/games/${normalizedGameCode}/setup-fields`,
       )
       .pipe(map((response) => (Array.isArray(response.fields) ? response.fields : [])));
+  }
+
+  getAiDifficultyCurve(gameCode: string, trackSlug: string): Observable<AiDifficultyCurve> {
+    const normalizedGameCode = gameCode.trim().toLowerCase();
+    const normalizedTrackSlug = trackSlug.trim().toLowerCase();
+    return this.http.get<AiDifficultyCurve>(
+      `${this.apiBaseUrl}/public/ai-difficulty/${normalizedGameCode}/${normalizedTrackSlug}/curve`,
+    );
+  }
+
+  calculateAiDifficulty(
+    gameCode: string,
+    trackSlug: string,
+    payload: CalculateAiDifficultyPayload,
+  ): Observable<AiDifficultyCalculationResponse> {
+    const normalizedGameCode = gameCode.trim().toLowerCase();
+    const normalizedTrackSlug = trackSlug.trim().toLowerCase();
+    return this.http.post<AiDifficultyCalculationResponse>(
+      `${this.apiBaseUrl}/public/ai-difficulty/${normalizedGameCode}/${normalizedTrackSlug}/calculate`,
+      payload,
+    );
   }
 }

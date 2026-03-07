@@ -7,6 +7,6 @@
   "trailingComma": "all",
   "bracketSpacing": false,
   "arrowParens": "always",
-  "endOfLine": "lf",
+  "endOfLine": "crlf",
   "htmlWhitespaceSensitivity": "css"
 }

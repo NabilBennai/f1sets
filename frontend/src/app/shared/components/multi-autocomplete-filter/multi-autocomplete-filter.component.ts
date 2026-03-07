@@ -1,6 +1,7 @@
 import {CommonModule} from '@angular/common';
 import {Component, ElementRef, EventEmitter, HostListener, Input, Output} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
 
 export interface MultiFilterOption {
   value: string;
@@ -11,13 +12,13 @@ export interface MultiFilterOption {
   selector: 'app-multi-autocomplete-filter',
   templateUrl: './multi-autocomplete-filter.component.html',
   styleUrl: './multi-autocomplete-filter.component.scss',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
 })
 export class MultiAutocompleteFilterComponent {
   @Input() options: MultiFilterOption[] = [];
   @Input() selectedValues: string[] = [];
-  @Input() placeholder = 'Filter';
-  @Input() emptyLabel = 'No options';
+  @Input() placeholder = 'shared.multiFilter.defaultPlaceholder';
+  @Input() emptyLabel = 'shared.multiFilter.empty';
   @Input() dense = true;
 
   @Output() readonly selectedValuesChange = new EventEmitter<string[]>();

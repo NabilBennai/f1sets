@@ -3,7 +3,7 @@ import {TrackFeature, TrackListItem} from '../../models/track.models';
 export type TrackViewState = 'loading' | 'ready' | 'empty' | 'error';
 
 export interface TrackBadgeView {
-  label: string;
+  labelKey: string;
   tone: 'success' | 'info' | 'warning' | 'accent';
 }
 
@@ -67,7 +67,7 @@ export function toTrackCard(track: TrackListItem): TrackCardView {
   return {
     id: track.id,
     title: track.grandPrixName ?? track.circuitName ?? track.slug,
-    subtitle: track.circuitName ?? 'Unknown circuit',
+    subtitle: track.circuitName ?? '',
     slug: track.slug,
     formattedLength: formatLength(track.lengthKm),
     trackImageUrl: track.trackImageUrl,
@@ -77,12 +77,12 @@ export function toTrackCard(track: TrackListItem): TrackCardView {
 
 function formatLength(lengthKm: number | string | null | undefined): string {
   if (lengthKm === null || lengthKm === undefined) {
-    return 'N/A';
+    return '';
   }
 
   const value = typeof lengthKm === 'string' ? parseFloat(lengthKm) : lengthKm;
   if (Number.isNaN(value)) {
-    return 'N/A';
+    return '';
   }
 
   return `${value.toFixed(3)} km`;
@@ -92,16 +92,16 @@ function buildBadges(track: TrackListItem): TrackBadgeView[] {
   const badges: TrackBadgeView[] = [];
 
   if (track.hasSetups) {
-    badges.push({label: 'Setups', tone: 'accent'});
+    badges.push({labelKey: 'discovery.badges.setups', tone: 'accent'});
   }
   if (track.hasLeaderboard) {
-    badges.push({label: 'Leaderboard', tone: 'info'});
+    badges.push({labelKey: 'discovery.badges.leaderboard', tone: 'info'});
   }
   if (track.hasAiDifficulty) {
-    badges.push({label: 'AI Curve', tone: 'warning'});
+    badges.push({labelKey: 'discovery.badges.aiCurve', tone: 'warning'});
   }
   if (badges.length === 0) {
-    badges.push({label: 'Scouting', tone: 'success'});
+    badges.push({labelKey: 'discovery.badges.scouting', tone: 'success'});
   }
 
   return badges;

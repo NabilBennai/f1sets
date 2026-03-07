@@ -1,142 +1,56 @@
 @use 'tailwindcss';
-@config "../tailwind.config.js";
-
-@layer base {
-  html,
-  body {
-    height: 100%;
-  }
-
-  app-root {
-    display: block;
-    height: 100%;
-  }
-
-  :root {
-    color-scheme: light;
-    --bg-1: #f3f5f8;
-    --bg-2: #e9edf2;
-    --surface-1: #ffffff;
-    --surface-2: #fbfcfd;
-    --surface-stroke: #d7dee8;
-    --text-1: #1f2937;
-    --text-2: #4b5563;
-    --text-3: #6b7280;
-    --brand-1: #1d4ed8;
-    --brand-2: #1e40af;
-    --brand-soft: #dbeafe;
-    --success-soft: #dcfce7;
-    --warning-soft: #fef3c7;
-    --info-soft: #dbeafe;
-    --danger-soft: #fee2e2;
-    --shadow-1: 0 3px 12px rgba(15, 23, 42, 0.08);
-    --shadow-2: 0 1px 3px rgba(15, 23, 42, 0.08);
-  }
-
-  [data-theme='dark'] {
-    color-scheme: dark;
-    --bg-1: #0b1220;
-    --bg-2: #111a2b;
-    --surface-1: #121c2e;
-    --surface-2: #182234;
-    --surface-stroke: #2a3a53;
-    --text-1: #e5e7eb;
-    --text-2: #cbd5e1;
-    --text-3: #93a3ba;
-    --brand-1: #60a5fa;
-    --brand-2: #3b82f6;
-    --brand-soft: #1e3a63;
-    --success-soft: #1d3a2f;
-    --warning-soft: #3c3214;
-    --info-soft: #172d50;
-    --danger-soft: #42202a;
-    --shadow-1: 0 6px 18px rgba(2, 6, 23, 0.35);
-    --shadow-2: 0 2px 6px rgba(2, 6, 23, 0.28);
-  }
-
-  body {
-    @apply antialiased;
-    font-family: 'IBM Plex Sans', sans-serif;
-    background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
-    color: var(--text-1);
-    overflow: hidden;
-  }
-
-  ::selection {
-    background: var(--brand-1);
-    color: #f8fafc;
-  }
+@plugin "daisyui" {
+  themes:
+    light,
+    dark,
+    cupcake,
+    bumblebee,
+    emerald,
+    corporate,
+    synthwave,
+    retro,
+    cyberpunk,
+    valentine,
+    halloween,
+    garden,
+    forest,
+    aqua,
+    lofi,
+    pastel,
+    fantasy,
+    wireframe,
+    black,
+    luxury,
+    dracula,
+    cmyk,
+    autumn,
+    business,
+    acid,
+    lemonade,
+    night --default,
+    coffee,
+    winter,
+    dim,
+    nord,
+    sunset,
+    caramellatte,
+    abyss,
+    silk;
 }
 
-@layer components {
-  .page-shell {
-    @apply px-2 py-2 md:px-3 md:py-3;
-  }
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
 
-  .app-page {
-    @apply px-2 py-2 md:px-3 md:py-3;
-    display: grid;
-    gap: 0.75rem;
-    min-height: 0;
-  }
+app-root {
+  display: block;
+  height: 100%;
+  overflow: hidden;
+}
 
-  .app-page__header {
-    @apply p-3;
-    background: var(--surface-2);
-    border: 1px solid var(--surface-stroke);
-    border-radius: 0.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .app-page__title {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-1);
-  }
-
-  .app-page__subtitle {
-    margin: 0.15rem 0 0;
-    font-size: 0.82rem;
-    color: var(--text-3);
-  }
-
-  .app-page__actions {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .panel-card {
-    background: var(--surface-2);
-    border: 1px solid var(--surface-stroke);
-    border-radius: 0.2rem;
-    box-shadow: none;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-sm px-2 py-1.5 text-sm font-semibold transition;
-    background: var(--brand-1);
-    color: #f8fafc;
-    border: 1px solid color-mix(in oklab, var(--brand-1), black 18%);
-  }
-
-  .btn-primary:hover {
-    background: var(--brand-2);
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-sm border px-2 py-1.5 text-sm font-semibold transition;
-    border-color: var(--surface-stroke);
-    color: var(--text-1);
-    background: var(--surface-1);
-  }
-
-  .btn-secondary:hover {
-    background: color-mix(in oklab, var(--surface-1), var(--brand-1) 6%);
-  }
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
 }

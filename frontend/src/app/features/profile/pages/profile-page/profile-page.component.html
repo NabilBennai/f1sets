@@ -1,56 +1,80 @@
 @if (vm$ | async; as vm) {
-  <section class="profile-shell">
+  <section class="flex flex-col gap-4">
     @if (vm.errorMessage) {
-      <article class="panel state-card error">
-        <h1>Profile unavailable</h1>
-        <p>{{ vm.errorMessage }}</p>
+      <article class="alert alert-error text-sm">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ vm.errorMessage }}</span>
       </article>
     }
     @if (vm.profile; as profile) {
-      <article class="panel profile-card">
-        <div class="profile-header">
+      <article class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center">
           @if (profile.avatarUrl) {
             <img
-              [alt]="profile.displayName + ' avatar'"
+              [alt]="'profile.common.avatarAlt' | translate: {name: profile.displayName}"
               [src]="profile.avatarUrl"
-              class="profile-avatar"
+              class="h-20 w-20 rounded-full object-cover"
             />
           } @else {
-            <div class="profile-avatar profile-avatar--fallback">
+            <div
+              class="flex h-20 w-20 items-center justify-center rounded-full bg-base-300 text-2xl font-bold"
+            >
               {{ (profile.displayName || 'U').charAt(0).toUpperCase() }}
             </div>
           }
-          <div class="profile-meta">
-            <p class="eyebrow">Driver Profile</p>
-            <h1>{{ profile.displayName }}</h1>
-            <p class="meta-line">
-              {{ profile.firstName || 'First name not set' }} {{ profile.lastName || '' }}
+          <div>
+            <h1 class="text-2xl font-semibold">{{ profile.displayName }}</h1>
+            <p class="mt-1 text-sm text-base-content/75">
+              {{ profile.firstName || ('profile.common.firstNameNotSet' | translate) }}
+              {{ profile.lastName || '' }}
             </p>
             @if (profile.country) {
-              <p class="meta-line">{{ profile.country }}</p>
+              <p class="mt-1 text-sm text-base-content/75">{{ profile.country }}</p>
             }
           </div>
         </div>
-        <div class="profile-grid">
-          <div class="panel-card stat">
-            <p class="label">Date of Birth</p>
-            <p class="value">{{ profile.dateOfBirth || 'Not specified' }}</p>
+
+        <div class="mt-5 flex flex-wrap gap-3">
+          <div
+            class="w-full rounded-box border border-base-300 bg-base-200 p-4 md:min-w-[220px] md:flex-1"
+          >
+            <p class="text-xs font-medium uppercase tracking-wide text-base-content/70">
+              {{ 'profile.common.dateOfBirth' | translate }}
+            </p>
+            <p class="mt-2 text-sm">
+              {{ profile.dateOfBirth || ('profile.common.notSpecified' | translate) }}
+            </p>
           </div>
-          <div class="panel-card stat">
-            <p class="label">Languages</p>
-            <p class="value">{{ toLanguageLine(profile.languages) }}</p>
+          <div
+            class="w-full rounded-box border border-base-300 bg-base-200 p-4 md:min-w-[220px] md:flex-1"
+          >
+            <p class="text-xs font-medium uppercase tracking-wide text-base-content/70">
+              {{ 'profile.common.languages' | translate }}
+            </p>
+            <p class="mt-2 text-sm">{{ toLanguageLine(profile.languages) }}</p>
           </div>
-          <div class="panel-card stat">
-            <p class="label">Visibility</p>
-            <p class="value">{{ profile.visibility }}</p>
+          <div
+            class="w-full rounded-box border border-base-300 bg-base-200 p-4 md:min-w-[220px] md:flex-1"
+          >
+            <p class="text-xs font-medium uppercase tracking-wide text-base-content/70">
+              {{ 'profile.common.visibility' | translate }}
+            </p>
+            <p class="mt-2 text-sm">
+              {{ 'profile.visibility.' + profile.visibility.toLowerCase() | translate }}
+            </p>
           </div>
         </div>
+
         @if (vm.showSettingsLink) {
-          <div class="actions">
-            <a class="btn-primary" routerLink="/profile/settings">Edit Profile Settings</a>
-            <a [routerLink]="['/profile', profile.userId]" class="btn-secondary"
-              >View Public Link</a
-            >
+          <div class="mt-5 flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-sm" routerLink="/profile/settings">
+              <i class="fa-solid fa-gear text-[11px]"></i>
+              {{ 'profile.page.editSettings' | translate }}
+            </a>
+            <a [routerLink]="['/profile', profile.userId]" class="btn btn-outline btn-sm">
+              <i class="fa-solid fa-up-right-from-square text-[11px]"></i>
+              {{ 'profile.page.viewPublicLink' | translate }}
+            </a>
           </div>
         }
       </article>

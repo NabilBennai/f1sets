@@ -8,6 +8,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
 import {AdminLogsService} from '../../data-access/admin-logs.service';
 import {AdminLogItem, AdminLogListResponse} from '../../models/admin-logs.models';
@@ -34,6 +35,7 @@ type LogFilterForm = FormGroup<{
     CommonModule,
     ReactiveFormsModule,
     DatePipe,
+    TranslateModule,
     ErpPaginationComponent,
     MultiAutocompleteFilterComponent,
   ],
@@ -107,6 +109,7 @@ export class AdminLogsPageComponent implements OnDestroy {
   constructor(
     private readonly adminLogsService: AdminLogsService,
     private readonly toastService: ToastService,
+    private readonly translateService: TranslateService,
     private readonly cdr: ChangeDetectorRef,
   ) {
     this.filters.valueChanges.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => {
@@ -188,11 +191,17 @@ export class AdminLogsPageComponent implements OnDestroy {
   }
 
   openRequestJson(log: AdminLogItem): void {
-    this.openJsonModal('Request JSON', log.requestPayloadJson);
+    this.openJsonModal(
+      this.translateService.instant('adminLogs.json.requestTitle'),
+      log.requestPayloadJson,
+    );
   }
 
   openResponseJson(log: AdminLogItem): void {
-    this.openJsonModal('Response JSON', log.responseBodyJson);
+    this.openJsonModal(
+      this.translateService.instant('adminLogs.json.responseTitle'),
+      log.responseBodyJson,
+    );
   }
 
   closeJsonModal(): void {
@@ -208,8 +217,12 @@ export class AdminLogsPageComponent implements OnDestroy {
     }
     navigator.clipboard
       .writeText(this.jsonModalContent)
-      .then(() => this.toastService.success('JSON copied to clipboard.'))
-      .catch(() => this.toastService.error('Unable to copy JSON.'));
+      .then(() =>
+        this.toastService.success(this.translateService.instant('adminLogs.messages.jsonCopied')),
+      )
+      .catch(() =>
+        this.toastService.error(this.translateService.instant('adminLogs.messages.jsonCopyFailed')),
+      );
   }
 
   openContextMenu(event: MouseEvent, column: string, value: unknown): void {
@@ -424,15 +437,18 @@ export class AdminLogsPageComponent implements OnDestroy {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? `Request failed (status ${error.status}).`;
+      return (
+        error.error?.message ??
+        this.translateService.instant('common.requestFailedWithStatus', {status: error.status})
+      );
     }
-    return 'Request failed.';
+    return this.translateService.instant('common.requestFailed');
   }
 
   private openJsonModal(title: string, rawJson: string | null): void {
     if (!rawJson || !rawJson.trim()) {
       this.jsonModalTitle = title;
-      this.jsonModalContent = 'No JSON payload captured.';
+      this.jsonModalContent = this.translateService.instant('adminLogs.json.noPayload');
       this.jsonModalLines = this.toHighlightedLines(this.jsonModalContent);
       this.jsonModalOpen = true;
       return;

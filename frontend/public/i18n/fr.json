@@ -1,0 +1,647 @@
+{
+  "lang": {
+    "en": "Anglais",
+    "fr": "Français"
+  },
+  "common": {
+    "all": "Tous",
+    "calculate": "Calculer",
+    "calculating": "Calcul en cours...",
+    "clear": "Effacer",
+    "close": "Fermer",
+    "create": "Créer",
+    "creating": "Création...",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement...",
+    "no": "Non",
+    "notAvailable": "N/D",
+    "publishing": "Publication...",
+    "refresh": "Actualiser",
+    "remove": "Retirer",
+    "requestFailed": "La requête a échoué.",
+    "requestFailedWithStatus": "La requête a échoué (HTTP {{status}}).",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "selectOption": "Sélectionner une option",
+    "uploading": "Téléversement...",
+    "yes": "Oui"
+  },
+  "toast": {
+    "titles": {
+      "success": "Succès",
+      "error": "Erreur",
+      "info": "Info"
+    }
+  },
+  "nav": {
+    "tagline": "Hub de setups pour pilotes F1",
+    "home": "Accueil",
+    "trackCatalog": "Catalogue des circuits",
+    "setups": "Setups",
+    "aiDifficulty": "Difficulté IA",
+    "admin": "Admin",
+    "adminTracks": "Circuits",
+    "adminSetups": "Champs setup",
+    "adminLogs": "Logs",
+    "account": "Compte",
+    "profilePage": "Profil",
+    "profileSettings": "Paramètres profil",
+    "changePassword": "Changer le mot de passe",
+    "logout": "Se déconnecter",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "changeLanguage": "Changer la langue",
+    "changeTheme": "Changer le thème",
+    "openMenu": "Ouvrir le menu",
+    "profileAvatar": "Avatar du profil"
+  },
+  "home": {
+    "title": "F1 Sets",
+    "subtitle": "Partagez des setups, comparez les performances et affinez votre rythme.",
+    "highlights": {
+      "tracksIndexed": "Circuits indexés",
+      "setupsShared": "Setups partagés",
+      "communityDrivers": "Pilotes communauté"
+    },
+    "features": {
+      "discovery": {
+        "title": "Découverte circuits",
+        "description": "Parcourez tous les circuits et voyez immédiatement les données disponibles."
+      },
+      "data": {
+        "title": "Données setup",
+        "description": "Publiez, comparez et réutilisez les valeurs setup avec une structure claire."
+      },
+      "raceDay": {
+        "title": "Aide IA jour de course",
+        "description": "Estimez la difficulté IA recommandée à partir de votre temps au tour."
+      }
+    },
+    "roles": {
+      "guest": "Invite",
+      "user": "Espace pilote",
+      "admin": "Espace admin"
+    },
+    "onboarding": {
+      "title": "Checklist de demarrage",
+      "progress": "{{done}} / {{total}} termines",
+      "dismiss": "Masquer",
+      "items": {
+        "profile": {
+          "title": "Completer le profil",
+          "description": "Renseignez vos infos publiques et votre avatar."
+        },
+        "discover": {
+          "title": "Explorer les circuits",
+          "description": "Consultez le catalogue et la couverture des donnees."
+        },
+        "setup": {
+          "title": "Publier un premier setup",
+          "description": "Ajoutez au moins un setup dans le catalogue."
+        },
+        "ai": {
+          "title": "Lancer un calcul IA",
+          "description": "Calculez une difficulte IA a partir de votre tour."
+        }
+      }
+    },
+    "quickActions": {
+      "discovery": {
+        "title": "Ouvrir discovery",
+        "description": "Aller au catalogue des circuits et verifier les donnees."
+      },
+      "setups": {
+        "title": "Gerer les setups",
+        "description": "Ouvrir l'espace setup et gerer votre bibliotheque."
+      },
+      "ai": {
+        "title": "Outil difficulte IA",
+        "description": "Estimer le niveau IA selon le temps au tour."
+      },
+      "logs": {
+        "title": "Consulter les logs API",
+        "description": "Inspecter les logs backend requete/reponse."
+      },
+      "trackAdmin": {
+        "title": "Admin circuits",
+        "description": "Creer et maintenir les metadonnees circuit."
+      },
+      "setupSchema": {
+        "title": "Schema setup",
+        "description": "Gerer les champs setup par jeu."
+      }
+    },
+    "recentSetups": {
+      "title": "Setups recents ouverts"
+    }
+  },
+  "auth": {
+    "common": {
+      "displayName": "Nom affiché",
+      "email": "Email",
+      "password": "Mot de passe",
+      "currentPassword": "Mot de passe actuel",
+      "newPassword": "Nouveau mot de passe",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Accédez à votre compte pour gérer vos setups et votre profil.",
+      "signIn": "Se connecter",
+      "signingIn": "Connexion...",
+      "forgotPassword": "Mot de passe oublié ?",
+      "createAccount": "Créer un compte"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "subtitle": "Rejoignez la communauté F1 Sets.",
+      "createAccount": "Créer un compte",
+      "creatingAccount": "Création du compte...",
+      "alreadyHaveAccount": "Déjà un compte ?"
+    },
+    "forgotPassword": {
+      "title": "Mot de passe oublié",
+      "subtitle": "Demandez un lien de réinitialisation par email.",
+      "sendResetLink": "Envoyer le lien",
+      "sending": "Envoi..."
+    },
+    "resetPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Définissez un nouveau mot de passe.",
+      "resetToken": "Token de réinitialisation",
+      "resetPassword": "Réinitialiser",
+      "resetting": "Réinitialisation..."
+    },
+    "changePassword": {
+      "title": "Changer le mot de passe",
+      "subtitle": "Mettez à jour le mot de passe du compte.",
+      "updatePassword": "Mettre à jour",
+      "updating": "Mise à jour..."
+    },
+    "messages": {
+      "genericFailure": "Une erreur est survenue. Veuillez réessayer.",
+      "loginFailed": "Échec de connexion.",
+      "registrationFailed": "Échec de l'inscription.",
+      "passwordResetRequestFailed": "Impossible de demander la réinitialisation.",
+      "resetFailed": "Échec de la réinitialisation.",
+      "resetRetry": "Échec de la réinitialisation. Veuillez demander un nouvel email.",
+      "changeFailed": "Impossible de changer le mot de passe.",
+      "passwordMustDiffer": "Le nouveau mot de passe doit être différent de l'actuel."
+    }
+  },
+  "shared": {
+    "gameAutocomplete": {
+      "placeholder": "Sélectionner un jeu",
+      "clearAria": "Effacer le jeu sélectionné",
+      "empty": "Aucun jeu trouvé"
+    },
+    "trackAutocomplete": {
+      "placeholder": "Sélectionner un circuit",
+      "clearAria": "Effacer le circuit sélectionné",
+      "empty": "Aucun circuit trouvé"
+    },
+    "multiFilter": {
+      "defaultPlaceholder": "Sélectionner des filtres",
+      "searchPlaceholder": "Rechercher...",
+      "empty": "Aucune option trouvée"
+    }
+  },
+  "pagination": {
+    "first": "Premier",
+    "prev": "Préc.",
+    "page": "Page",
+    "next": "Suiv.",
+    "last": "Dernier",
+    "rows": "Lignes",
+    "goTo": "Aller à",
+    "go": "OK",
+    "total": "{{count}} {{entity}}",
+    "entities": {
+      "rows": "lignes",
+      "tracks": "circuits",
+      "setups": "setups"
+    }
+  },
+  "discovery": {
+    "title": "Catalogue des circuits",
+    "gameLabel": "Jeu : {{game}}",
+    "total": "Total : {{count}}",
+    "visible": "Visibles : {{count}}",
+    "filters": {
+      "game": "Jeu",
+      "gameAria": "Choisir le jeu",
+      "searchPlaceholder": "Rechercher par circuit, piste ou slug",
+      "features": "Filtres de données"
+    },
+    "table": {
+      "track": "Circuit",
+      "circuit": "Piste",
+      "slug": "Slug",
+      "length": "Longueur",
+      "data": "Données",
+      "actions": "Actions"
+    },
+    "badges": {
+      "setups": "Setups",
+      "leaderboard": "Classement",
+      "aiCurve": "Courbe IA",
+      "scouting": "Exploration"
+    },
+    "actions": {
+      "openSetups": "Ouvrir les setups"
+    },
+    "track": {
+      "unknownCircuit": "Piste inconnue"
+    },
+    "messages": {
+      "loading": "Chargement des circuits...",
+      "empty": "Aucun circuit ne correspond aux filtres.",
+      "loadFailed": "Échec du chargement des circuits.",
+      "catalogUnavailable": "Catalogue des circuits indisponible.",
+      "apiUnavailable": "API circuits indisponible (HTTP {{status}}).",
+      "notFound": "Données circuit introuvables.",
+      "unavailable": "Indisponible"
+    }
+  },
+  "adminTrack": {
+    "title": "Administration des circuits",
+    "subtitle": "Gérez les métadonnées et images des circuits.",
+    "filters": {
+      "game": "Jeu",
+      "searchPlaceholder": "Rechercher un circuit",
+      "image": "Image",
+      "hasImageYes": "Avec image",
+      "hasImageNo": "Sans image"
+    },
+    "table": {
+      "slug": "Slug",
+      "grandPrix": "Grand Prix",
+      "circuit": "Piste",
+      "length": "Longueur",
+      "lengthKm": "Longueur (km)",
+      "image": "Image",
+      "actions": "Actions"
+    },
+    "image": {
+      "available": "Disponible",
+      "missing": "Manquante"
+    },
+    "actions": {
+      "createTrack": "Créer un circuit",
+      "uploadPhoto": "Téléverser la photo"
+    },
+    "createModal": {
+      "title": "Créer un circuit"
+    },
+    "editModal": {
+      "title": "Modifier le circuit : {{slug}}",
+      "trackPhoto": "Photo du circuit",
+      "noImage": "Aucune image"
+    },
+    "messages": {
+      "loading": "Chargement des circuits...",
+      "empty": "Aucun circuit trouvé.",
+      "created": "Circuit créé.",
+      "updated": "Circuit mis à jour.",
+      "deleted": "Circuit supprimé.",
+      "photoUploaded": "Image du circuit téléversée.",
+      "slugRequired": "Le slug est requis.",
+      "lengthNumeric": "La longueur doit être numérique.",
+      "confirmDelete": "Supprimer le circuit « {{name}} » ?"
+    }
+  },
+  "adminSetup": {
+    "title": "Administration du schéma setup",
+    "subtitle": "Définissez les champs setup par jeu.",
+    "game": "Jeu",
+    "actions": {
+      "loadSchema": "Charger le schéma",
+      "addField": "Ajouter un champ",
+      "saveSchema": "Enregistrer le schéma"
+    },
+    "form": {
+      "fieldKeyPlaceholder": "Clé du champ",
+      "fieldLabelPlaceholder": "Libellé du champ",
+      "required": "Obligatoire",
+      "orderPlaceholder": "Ordre",
+      "selectOptionsPlaceholder": "Options SELECT (séparées par virgule)"
+    },
+    "messages": {
+      "saved": "Schéma enregistré."
+    }
+  },
+  "adminLogs": {
+    "title": "Logs application",
+    "subtitle": "Consultez les logs requête/réponse et filtrez rapidement.",
+    "filters": {
+      "from": "Du",
+      "to": "Au",
+      "level": "Niveau",
+      "method": "Méthode",
+      "pathContains": "Chemin contient",
+      "status": "Statut",
+      "emailContains": "Email contient"
+    },
+    "table": {
+      "timestamp": "Horodatage",
+      "level": "Niveau",
+      "method": "Méthode",
+      "path": "Chemin",
+      "query": "Query",
+      "status": "Statut",
+      "duration": "Durée",
+      "user": "Utilisateur",
+      "ip": "IP",
+      "json": "JSON",
+      "req": "Req",
+      "res": "Res",
+      "anonymous": "Anonyme"
+    },
+    "json": {
+      "requestTitle": "Payload requête",
+      "responseTitle": "Payload réponse",
+      "copy": "Copier JSON",
+      "noPayload": "Aucun payload"
+    },
+    "context": {
+      "copyValue": "Copier la valeur",
+      "filterByValue": "Filtrer par valeur",
+      "clearFilter": "Effacer le filtre"
+    },
+    "messages": {
+      "empty": "Aucun log trouvé.",
+      "jsonCopied": "JSON copié dans le presse-papiers.",
+      "jsonCopyFailed": "Échec de copie du JSON."
+    }
+  },
+  "aiDifficulty": {
+    "title": "Calculateur de difficulté IA",
+    "subtitle": "Estimez le niveau IA selon le temps au tour et la courbe du circuit.",
+    "form": {
+      "game": "Jeu",
+      "track": "Circuit",
+      "lapTime": "Temps au tour",
+      "lapTimePlaceholder": "Exemple : 1:30.000"
+    },
+    "messages": {
+      "noTracks": "Aucun circuit disponible",
+      "loadingCurve": "Chargement de la courbe de difficulté IA...",
+      "runCalculation": "Lancez un calcul pour voir l'IA recommandée et l'intervalle de confiance.",
+      "invalidLapTime": "Format de temps au tour invalide."
+    },
+    "curve": {
+      "version": "Version courbe",
+      "source": "Source",
+      "esportsRef": "Référence esports",
+      "averageRef": "Référence moyenne"
+    },
+    "chart": {
+      "title": "Courbe de difficulté",
+      "formula": "Formule",
+      "difficultyCurve": "Courbe difficulté",
+      "esportsReference": "Référence esports",
+      "averageReference": "Référence moyenne",
+      "esportsPaceLine": "Repère allure esports",
+      "averagePaceLine": "Repère allure moyenne",
+      "comfortInterval": "Zone de rythme (±6 IA)",
+      "targetInterval": "Zone cible (±3 IA)",
+      "confidenceInterval": "Votre intervalle de confiance",
+      "yourPoint": "Votre point",
+      "xAxis": "Temps au tour (m:ss.mmm)",
+      "yAxis": "Difficulté IA",
+      "tooltip": "{{label}} : {{x}} -> IA {{y}}"
+    },
+    "calculation": {
+      "title": "Résultat du calcul",
+      "recommendedAi": "IA recommandée",
+      "confidence": "Intervalle de confiance",
+      "notes": "Notes"
+    },
+    "confidence": {
+      "min": "Min",
+      "recommended": "Recommandé",
+      "max": "Max"
+    }
+  },
+  "profile": {
+    "common": {
+      "avatarAlt": "Avatar de {{name}}",
+      "avatarAltSimple": "Avatar du profil",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "country": "Pays",
+      "dateOfBirth": "Date de naissance",
+      "languages": "Langues",
+      "visibility": "Visibilité",
+      "firstNameNotSet": "Prénom non renseigné",
+      "notSpecified": "Non renseigné"
+    },
+    "page": {
+      "editSettings": "Modifier les paramètres",
+      "viewPublicLink": "Voir le profil public"
+    },
+    "settings": {
+      "title": "Paramètres du profil",
+      "subtitle": "Mettez à jour vos informations publiques et préférences.",
+      "uploadPicture": "Téléverser une image",
+      "uploadingPicture": "Téléversement...",
+      "languagesLabel": "Langues",
+      "languagesPlaceholder": "Exemple : Français, Anglais",
+      "visibilityLabel": "Visibilité du profil",
+      "saveProfile": "Enregistrer le profil"
+    },
+    "visibility": {
+      "private": "Privé",
+      "public": "Public"
+    },
+    "messages": {
+      "saved": "Profil enregistré.",
+      "pictureUpdated": "Photo de profil mise à jour.",
+      "updateFailed": "Échec de mise à jour du profil.",
+      "loadFailed": "Échec de chargement du profil.",
+      "notFound": "Profil introuvable.",
+      "invalidId": "Identifiant de profil invalide.",
+      "signInRequired": "Connexion requise pour voir ce profil."
+    }
+  },
+  "setups": {
+    "title": "Setups",
+    "subtitle": "Parcourez, publiez et comparez les setups de course.",
+    "summary": {
+      "game": "Jeu : {{value}}",
+      "track": "Circuit : {{value}}",
+      "total": "Total setups : {{count}}"
+    },
+    "catalog": {
+      "title": "Catalogue des setups",
+      "results": "{{visible}} / {{total}} visibles"
+    },
+    "recommended": {
+      "title": "Setups recommandés",
+      "score": "Score : {{score}}"
+    },
+    "table": {
+      "hierarchy": "Hiérarchie",
+      "title": "Titre",
+      "score": "Score",
+      "votes": "Votes",
+      "created": "Créé le"
+    },
+    "publishModal": {
+      "title": "Publier un setup",
+      "titleLabel": "Titre",
+      "notesLabel": "Notes",
+      "session": "Session",
+      "weather": "Météo",
+      "assists": "Assistances",
+      "input": "Entrée",
+      "fuel": "Carburant (kg)",
+      "tyre": "Pneu",
+      "setupFields": "Champs setup",
+      "game": "Jeu",
+      "track": "Circuit"
+    },
+    "filters": {
+      "game": "Filtre jeu",
+      "track": "Filtre circuit",
+      "search": "Rechercher dans titre ou notes",
+      "session": "Filtre session",
+      "weather": "Filtre météo",
+      "input": "Filtre entrée",
+      "tags": {
+        "game": "Jeu : {{value}}",
+        "track": "Circuit : {{value}}",
+        "search": "Recherche : {{value}}",
+        "session": "Session : {{value}}",
+        "weather": "Météo : {{value}}",
+        "input": "Entrée : {{value}}"
+      }
+    },
+    "enums": {
+      "session": {
+        "race": "Course",
+        "qualifying": "Qualifications",
+        "time-trial": "Contre-la-montre"
+      },
+      "weather": {
+        "dry": "Sec",
+        "mixed": "Variable",
+        "wet": "Pluie"
+      },
+      "input": {
+        "wheel": "Volant",
+        "controller": "Manette",
+        "keyboard": "Clavier"
+      }
+    },
+    "ai": {
+      "title": "Difficulté IA par temps au tour",
+      "subtitle": "Utilisez votre tour sur {{track}} pour estimer l'IA recommandée.",
+      "source": "Source : {{source}}",
+      "curveVersion": "Version courbe : {{version}}",
+      "lapTime": "Temps au tour",
+      "lapTimePlaceholder": "Exemple : 1:30.000",
+      "calculate": "Estimer l'IA",
+      "recommended": "IA recommandée",
+      "confidence": "Confiance",
+      "notes": "Notes",
+      "noCurve": "Aucune courbe de difficulté IA disponible pour ce circuit.",
+      "invalidLapTime": "Format de temps au tour invalide."
+    },
+    "actions": {
+      "publishSetup": "Publier setup",
+      "importJson": "Importer JSON",
+      "share": "Partager",
+      "export": "Exporter",
+      "upvote": "Vote +",
+      "downvote": "Vote -",
+      "hide": "Masquer",
+      "unhide": "Afficher",
+      "reportSetup": "Signaler le setup",
+      "reportReason": "Raison",
+      "report": "Signaler",
+      "resetFilters": "Réinitialiser filtres",
+      "cancelEdit": "Annuler modification",
+      "addFavorite": "Ajouter favori",
+      "removeFavorite": "Retirer favori",
+      "duplicateToDraft": "Dupliquer en brouillon",
+      "exportVisibleCsv": "Exporter CSV visible"
+    },
+    "votes": {
+      "up": "Positifs",
+      "down": "Négatifs"
+    },
+    "compare": {
+      "label": "Comparer avec",
+      "none": "Aucune comparaison"
+    },
+    "messages": {
+      "loading": "Chargement des setups...",
+      "empty": "Aucun setup trouvé.",
+      "published": "Setup publié.",
+      "updated": "Setup mis à jour.",
+      "deleted": "Setup supprimé.",
+      "confirmDelete": "Supprimer le setup « {{title}} » ?",
+      "reported": "Setup signalé.",
+      "hidden": "Setup masqué.",
+      "unhidden": "Setup affiché.",
+      "shareLinkCopied": "Lien copié.",
+      "shareLinkCopyFailed": "Échec de copie du lien.",
+      "imported": "Setup importé.",
+      "invalidSetupFile": "Fichier setup invalide.",
+      "reportReasonRequired": "La raison du signalement est requise.",
+      "hideReasonPrompt": "Raison du masquage (optionnelle) :",
+      "noDescription": "Aucune description.",
+      "noSchema": "Le schéma setup n'est pas configuré pour ce jeu.",
+      "titleMinLength": "Le titre doit contenir au moins 3 caractères.",
+      "signInRequiredForMine": "Connectez-vous pour acceder a vos setups.",
+      "addedToFavorites": "Ajoute aux favoris.",
+      "removedFromFavorites": "Retire des favoris.",
+      "commentAdded": "Note ajoutee.",
+      "presetNameRequired": "Le nom du preset est requis.",
+      "presetSaved": "Preset sauvegarde.",
+      "noRowsToExport": "Aucun setup visible a exporter.",
+      "csvExported": "CSV exporte ({{count}} lignes).",
+      "duplicatedToDraft": "Setup duplique dans le brouillon de publication."
+    },
+    "library": {
+      "helper": "Basculez entre tous les setups, vos setups et vos favoris locaux.",
+      "views": {
+        "all": "Tous",
+        "mine": "Les miens",
+        "favorites": "Favoris"
+      }
+    },
+    "collab": {
+      "title": "Notes collaboratives",
+      "subtitle": "Ajoutez des notes courtes et conseils sur ce setup.",
+      "commentPlaceholder": "Ecrire une note ou un conseil...",
+      "addComment": "Ajouter une note",
+      "empty": "Aucune note pour le moment.",
+      "guestAuthor": "Invite"
+    },
+    "automation": {
+      "title": "Etat de preparation",
+      "checks": {
+        "targetTrack": "Jeu et circuit selectionnes",
+        "title": "Titre du setup valide",
+        "schema": "Schema setup disponible",
+        "values": "Au moins une valeur setup renseignee"
+      }
+    },
+    "sort": {
+      "label": "Tri",
+      "options": {
+        "title": "Titre",
+        "score": "Score",
+        "newest": "Plus recent"
+      }
+    },
+    "presets": {
+      "namePlaceholder": "Sauvegarder les filtres comme preset",
+      "save": "Sauver preset",
+      "empty": "Aucun preset sauvegarde."
+    }
+  }
+}

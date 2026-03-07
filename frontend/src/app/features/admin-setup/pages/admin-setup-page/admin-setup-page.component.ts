@@ -8,6 +8,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AdminSetupSchemaService} from '../../data-access/admin-setup-schema.service';
 import {SetupFieldDefinition, SetupFieldType} from '../../../setups/models/setup.models';
 import {GameAutocompleteInputComponent} from '../../../../shared/components/game-autocomplete-input/game-autocomplete-input.component';
@@ -26,7 +27,7 @@ type FieldGroup = FormGroup<{
   templateUrl: './admin-setup-page.component.html',
   styleUrl: './admin-setup-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [GameAutocompleteInputComponent, ReactiveFormsModule],
+  imports: [GameAutocompleteInputComponent, ReactiveFormsModule, TranslateModule],
 })
 export class AdminSetupPageComponent {
   readonly gameControl = new FormControl('f12025', {nonNullable: true});
@@ -41,6 +42,7 @@ export class AdminSetupPageComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly adminSetupSchemaService: AdminSetupSchemaService,
+    private readonly translateService: TranslateService,
     private readonly cdr: ChangeDetectorRef,
   ) {
     this.form = this.fb.group({
@@ -114,7 +116,7 @@ export class AdminSetupPageComponent {
         this.saving = false;
         this.fieldsArray.clear();
         response.fields.forEach((field) => this.fieldsArray.push(this.createFieldGroup(field)));
-        this.successMessage = 'Setup field schema saved.';
+        this.successMessage = this.translateService.instant('adminSetup.messages.saved');
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -146,8 +148,11 @@ export class AdminSetupPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? `Request failed (status ${error.status}).`;
+      return (
+        error.error?.message ??
+        this.translateService.instant('common.requestFailedWithStatus', {status: error.status})
+      );
     }
-    return 'Request failed.';
+    return this.translateService.instant('common.requestFailed');
   }
 }

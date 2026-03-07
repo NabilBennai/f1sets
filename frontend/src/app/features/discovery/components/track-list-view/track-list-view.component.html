@@ -1,141 +1,190 @@
 @if (viewModel$ | async; as vm) {
-  <section class="track-list app-page">
-    <header class="track-list__titlebar app-page__header">
-      <div>
-        <h2 class="app-page__title">Track Catalog</h2>
-        <p class="track-list__muted app-page__subtitle">Game: {{ vm.gameLabel }}</p>
-      </div>
-      <div class="track-list__title-actions app-page__actions">
-        <label class="field-group field-group--inline">
-          <span>Game</span>
-          <select [formControl]="gameControl" aria-label="Select game build" class="field">
-            @for (option of gameOptions; track option.code) {
-              <option [value]="option.code">{{ option.label }}</option>
-            }
-          </select>
-        </label>
-        <span class="summary-chip">Total: {{ vm.totalTracks }}</span>
-        <span class="summary-chip">Visible: {{ vm.filteredCount }}</span>
-        <button (click)="handleRefresh()" class="btn-secondary" type="button">Refresh</button>
-        <button
-          (click)="handleClearFilters()"
-          [disabled]="!(filtersActive$ | async)"
-          class="btn-secondary"
-          type="button"
-        >
-          Clear
-        </button>
+  <section class="flex flex-col gap-4">
+    <header class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 class="flex items-center gap-2 text-xl font-semibold">
+            <i class="fa-solid fa-compass text-sm text-base-content/70"></i>
+            {{ 'discovery.title' | translate }}
+          </h2>
+          <p class="mt-1 text-sm text-base-content/70">
+            {{ 'discovery.gameLabel' | translate: {game: vm.gameLabel} }}
+          </p>
+        </div>
+        <div class="flex flex-wrap items-end gap-2">
+          <label class="flex flex-col gap-1">
+            <span class="flex items-center gap-2 text-xs font-medium text-base-content/80"
+              ><i class="fa-solid fa-gamepad text-[11px]"></i
+              >{{ 'discovery.filters.game' | translate }}</span
+            >
+            <select
+              [formControl]="gameControl"
+              [attr.aria-label]="'discovery.filters.gameAria' | translate"
+              class="select select-bordered select-sm min-w-[180px]"
+            >
+              @for (option of gameOptions; track option.code) {
+                <option [value]="option.code">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+          <span class="badge badge-ghost">
+            <i class="fa-solid fa-layer-group mr-1 text-[10px]"></i>
+            {{ 'discovery.total' | translate: {count: vm.totalTracks} }}
+          </span>
+          <span class="badge badge-ghost">
+            <i class="fa-solid fa-eye mr-1 text-[10px]"></i>
+            {{ 'discovery.visible' | translate: {count: vm.filteredCount} }}
+          </span>
+          <button (click)="handleRefresh()" class="btn btn-outline btn-sm" type="button">
+            <i class="fa-solid fa-rotate-right text-xs"></i>
+            {{ 'common.refresh' | translate }}
+          </button>
+          <button
+            (click)="handleClearFilters()"
+            [disabled]="!(filtersActive$ | async)"
+            class="btn btn-outline btn-sm"
+            type="button"
+          >
+            <i class="fa-solid fa-filter-circle-xmark text-xs"></i>
+            {{ 'common.clear' | translate }}
+          </button>
+        </div>
       </div>
     </header>
 
     @if (vm.status === 'error') {
-      <article class="state-card state-card--error">
-        <strong>Catalog unavailable.</strong> {{ vm.errorMessage }}
+      <article class="alert alert-error text-sm">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <strong>{{ 'discovery.messages.catalogUnavailable' | translate }}</strong>
+        {{ vm.errorMessage }}
       </article>
     }
 
-    <section class="panel-card p-0 track-list__grid-shell">
-      <div class="track-list__table-wrap">
-        <table class="track-list__table" [formGroup]="filtersForm" autocomplete="off">
-          <thead>
-            <tr class="head-row head-row--labels">
+    <section class="overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-sm">
+      <div class="max-h-[62vh] overflow-auto">
+        <table class="table table-zebra" [formGroup]="filtersForm" autocomplete="off">
+          <thead class="sticky top-0 z-20">
+            <tr class="bg-base-100">
               <th>
-                <button type="button" class="sort-btn" (click)="setNameSort()">
-                  Track
-                  <span class="sort-mark">{{ sortMark('name') }}</span>
+                <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setNameSort()">
+                  <i class="fa-solid fa-road mr-1 text-[11px]"></i
+                  >{{ 'discovery.table.track' | translate }} {{ sortMark('name') }}
                 </button>
               </th>
-              <th>Circuit</th>
+              <th>{{ 'discovery.table.circuit' | translate }}</th>
               <th>
-                <button type="button" class="sort-btn" (click)="setSlugSort()">
-                  Slug
-                  <span class="sort-mark">{{ sortMark('slug') }}</span>
+                <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSlugSort()">
+                  <i class="fa-solid fa-hashtag mr-1 text-[11px]"></i
+                  >{{ 'discovery.table.slug' | translate }} {{ sortMark('slug') }}
                 </button>
               </th>
               <th>
-                <button type="button" class="sort-btn" (click)="toggleLengthSort()">
-                  Length (km)
-                  <span class="sort-mark">{{ sortMark('length') }}</span>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-xs px-0"
+                  (click)="toggleLengthSort()"
+                >
+                  {{ 'discovery.table.length' | translate }} {{ sortMark('length') }}
                 </button>
               </th>
-              <th>Data</th>
-              <th>Actions</th>
+              <th>{{ 'discovery.table.data' | translate }}</th>
+              <th>{{ 'discovery.table.actions' | translate }}</th>
             </tr>
-            <tr class="head-row head-row--filters">
+            <tr class="bg-base-100">
               <th>
                 <input
-                  class="filter-control"
+                  class="input input-bordered input-sm w-full"
                   formControlName="query"
-                  placeholder="Search track/circuit/slug"
+                  [placeholder]="'discovery.filters.searchPlaceholder' | translate"
                   type="search"
                 />
               </th>
-              <th class="filter-placeholder">-</th>
-              <th class="filter-placeholder">-</th>
-              <th class="filter-placeholder">-</th>
+              <th>-</th>
+              <th>-</th>
+              <th>-</th>
               <th>
                 <app-multi-autocomplete-filter
                   [dense]="true"
-                  placeholder="Features"
+                  [placeholder]="'discovery.filters.features' | translate"
                   [options]="featureFilterOptions"
                   [selectedValues]="selectedFeatureFilters"
                   (selectedValuesChange)="onFeatureFiltersChange($event)"
                 />
               </th>
-              <th class="filter-placeholder">-</th>
+              <th>-</th>
             </tr>
           </thead>
           <tbody>
             @if (vm.status === 'loading') {
               <tr>
-                <td colspan="6" class="track-list__empty">Loading tracks...</td>
+                <td colspan="6" class="text-center text-sm text-base-content/70">
+                  {{ 'discovery.messages.loading' | translate }}
+                </td>
               </tr>
             } @else if (vm.status === 'empty') {
               <tr>
-                <td colspan="6" class="track-list__empty">No tracks match current filters.</td>
+                <td colspan="6" class="text-center text-sm text-base-content/70">
+                  {{ 'discovery.messages.empty' | translate }}
+                </td>
               </tr>
             } @else if (vm.status === 'error') {
               <tr>
-                <td colspan="6" class="track-list__empty">Unable to load tracks.</td>
+                <td colspan="6" class="text-center text-sm text-base-content/70">
+                  {{ 'discovery.messages.loadFailed' | translate }}
+                </td>
               </tr>
             } @else {
               @for (track of vm.tracks; track trackByTrackId($index, track)) {
                 <tr>
                   <td>
-                    <div class="row-track">
-                      <div class="thumb-wrap">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="h-10 w-16 overflow-hidden rounded border border-base-300 bg-base-200"
+                      >
                         @if (track.trackImageUrl) {
-                          <img [alt]="track.title" [src]="track.trackImageUrl" loading="lazy" />
+                          <img
+                            [alt]="track.title"
+                            [src]="track.trackImageUrl"
+                            loading="lazy"
+                            class="h-full w-full object-cover"
+                          />
                         } @else {
-                          <div class="thumb-fallback">{{ track.slug | uppercase }}</div>
+                          <div
+                            class="flex h-full items-center justify-center text-[10px] font-medium text-base-content/70"
+                          >
+                            {{ track.slug | uppercase }}
+                          </div>
                         }
                       </div>
                       <div>
-                        <div class="cell-main">{{ track.title }}</div>
-                        <div class="cell-sub">{{ track.subtitle }}</div>
+                        <div class="font-medium">{{ track.title }}</div>
+                        <div class="text-xs text-base-content/70">
+                          {{ track.subtitle || ('discovery.track.unknownCircuit' | translate) }}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td>{{ track.subtitle }}</td>
+                  <td>{{ track.subtitle || ('discovery.track.unknownCircuit' | translate) }}</td>
                   <td>
-                    <span class="mono">{{ track.slug | uppercase }}</span>
+                    <span class="font-mono text-xs">{{ track.slug | uppercase }}</span>
                   </td>
-                  <td>{{ track.formattedLength }}</td>
+                  <td>{{ track.formattedLength || ('common.notAvailable' | translate) }}</td>
                   <td>
-                    <div class="badge-wrap">
+                    <div class="flex flex-wrap gap-1">
                       @for (badge of track.badges; track badge) {
-                        <span [attr.data-tone]="badge.tone" class="badge">
-                          {{ badge.label }}
-                        </span>
+                        <span class="badge badge-outline badge-sm">{{
+                          badge.labelKey | translate
+                        }}</span>
                       }
                     </div>
                   </td>
                   <td>
                     <a
-                      class="btn-secondary btn-secondary--tiny"
+                      class="btn btn-outline btn-xs"
                       [routerLink]="['/setups', gameControl.value, track.slug]"
                     >
-                      Open setups
+                      <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                      {{ 'discovery.actions.openSetups' | translate }}
                     </a>
                   </td>
                 </tr>

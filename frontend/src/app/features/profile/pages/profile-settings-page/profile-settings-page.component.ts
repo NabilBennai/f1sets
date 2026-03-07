@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ProfileService} from '../../data-access/profile.service';
 import {Profile, ProfileVisibility, UpdateProfilePayload} from '../../data-access/profile.models';
 
@@ -18,7 +19,7 @@ type ProfileSettingsFormGroup = FormGroup<{
   templateUrl: './profile-settings-page.component.html',
   styleUrl: './profile-settings-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslateModule],
 })
 export class ProfileSettingsPageComponent {
   readonly form: ProfileSettingsFormGroup = new FormGroup({
@@ -37,7 +38,10 @@ export class ProfileSettingsPageComponent {
   successMessage = '';
   avatarUrl: string | null = null;
 
-  constructor(private readonly profileService: ProfileService) {
+  constructor(
+    private readonly profileService: ProfileService,
+    private readonly translateService: TranslateService,
+  ) {
     this.loadProfile();
   }
 
@@ -67,7 +71,7 @@ export class ProfileSettingsPageComponent {
     this.profileService.updateMyProfile(payload).subscribe({
       next: (profile) => {
         this.saving = false;
-        this.successMessage = 'Profile settings saved.';
+        this.successMessage = this.translateService.instant('profile.messages.saved');
         this.applyProfile(profile);
       },
       error: (error) => {
@@ -92,7 +96,7 @@ export class ProfileSettingsPageComponent {
       next: (response) => {
         this.uploading = false;
         this.avatarUrl = response.avatarUrl;
-        this.successMessage = 'Profile picture updated.';
+        this.successMessage = this.translateService.instant('profile.messages.pictureUpdated');
       },
       error: (error) => {
         this.uploading = false;
@@ -134,8 +138,8 @@ export class ProfileSettingsPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Unable to update profile.';
+      return error.error?.message ?? this.translateService.instant('profile.messages.updateFailed');
     }
-    return 'Unable to update profile.';
+    return this.translateService.instant('profile.messages.updateFailed');
   }
 }

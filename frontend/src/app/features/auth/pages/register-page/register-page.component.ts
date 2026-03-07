@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Router, RouterLink} from '@angular/router';
 import {AuthService} from '../../data-access/auth.service';
 
@@ -15,7 +16,7 @@ type RegisterFormGroup = FormGroup<{
   templateUrl: './register-page.component.html',
   styleUrl: './register-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
 })
 export class RegisterPageComponent {
   readonly form: RegisterFormGroup = new FormGroup({
@@ -39,6 +40,7 @@ export class RegisterPageComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly translateService: TranslateService,
   ) {}
 
   submit(): void {
@@ -71,8 +73,10 @@ export class RegisterPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Registration failed. Please check the entered details.';
+      return (
+        error.error?.message ?? this.translateService.instant('auth.messages.registrationFailed')
+      );
     }
-    return 'Registration failed. Please try again.';
+    return this.translateService.instant('auth.messages.genericFailure');
   }
 }

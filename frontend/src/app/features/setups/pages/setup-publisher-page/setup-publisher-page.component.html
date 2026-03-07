@@ -1,171 +1,454 @@
-<section class="setup-page app-page">
-  <header class="setup-hero app-page__header">
-    <div>
-      <p class="setup-hero__kicker">Setup Workspace</p>
-      <h2 class="app-page__title">Community setups</h2>
-      <p class="setup-hero__lead app-page__subtitle">
-        Rate, compare, report, and share setups with context-aware filters.
-      </p>
-    </div>
-    <div class="setup-hero__stats">
-      <span class="setup-chip">Game: {{ gameCode ? (gameCode | uppercase) : 'All' }}</span>
-      <span class="setup-chip">Track: {{ trackSlug ? (trackSlug | uppercase) : 'All' }}</span>
-      <span class="setup-chip">Total: {{ totalSetups }}</span>
-    </div>
-    <div class="setup-hero__actions">
-      <button type="button" class="btn-primary" (click)="openPublishModal()">Publish setup</button>
+<section class="flex flex-col gap-4">
+  <header class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 class="flex items-center gap-2 text-xl font-semibold">
+          <i class="fa-solid fa-screwdriver-wrench text-base-content/70"></i>
+          {{ 'setups.title' | translate }}
+        </h2>
+        <p class="mt-1 text-sm text-base-content/70">{{ 'setups.subtitle' | translate }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="badge badge-ghost">
+          <i class="fa-solid fa-gamepad mr-1 text-[10px]"></i>
+          {{
+            'setups.summary.game'
+              | translate: {value: gameCode ? (gameCode | uppercase) : ('common.all' | translate)}
+          }}
+        </span>
+        <span class="badge badge-ghost">
+          <i class="fa-solid fa-road mr-1 text-[10px]"></i>
+          {{
+            'setups.summary.track'
+              | translate: {value: trackSlug ? (trackSlug | uppercase) : ('common.all' | translate)}
+          }}
+        </span>
+        <span class="badge badge-ghost">
+          <i class="fa-solid fa-layer-group mr-1 text-[10px]"></i>
+          {{ 'setups.summary.total' | translate: {count: totalSetups} }}
+        </span>
+        <button type="button" class="btn btn-primary btn-sm" (click)="openPublishModal()">
+          <i class="fa-solid fa-plus text-xs"></i>
+          {{ 'setups.actions.publishSetup' | translate }}
+        </button>
+      </div>
     </div>
   </header>
 
   @if (errorMessage) {
-    <article class="state-card state-card--error">{{ errorMessage }}</article>
+    <article class="alert alert-error text-sm">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+    </article>
   }
   @if (successMessage) {
-    <article class="state-card state-card--success">{{ successMessage }}</article>
+    <article class="alert alert-success text-sm">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage }}</span>
+    </article>
+  }
+
+  @if (gameCode && trackSlug) {
+    <article class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="flex items-center gap-2 text-base font-semibold">
+          <i class="fa-solid fa-robot text-sm text-base-content/70"></i>
+          {{ 'setups.ai.title' | translate }}
+        </h3>
+        @if (aiDifficultyCurveVersion !== null) {
+          <span class="badge badge-ghost">{{
+            'setups.ai.curveVersion' | translate: {version: aiDifficultyCurveVersion}
+          }}</span>
+        }
+      </div>
+      <p class="mt-1 text-sm text-base-content/70">
+        {{ 'setups.ai.subtitle' | translate: {track: (trackSlug | uppercase)} }}
+      </p>
+      @if (aiDifficultySource) {
+        <p class="mt-1 text-xs text-base-content/60">
+          {{ 'setups.ai.source' | translate: {source: aiDifficultySource} }}
+        </p>
+      }
+      <div class="mt-3 flex flex-wrap items-end gap-2" [formGroup]="aiDifficultyForm">
+        <label class="flex flex-col gap-1">
+          <span class="flex items-center gap-2 text-xs font-medium text-base-content/80"
+            ><i class="fa-solid fa-stopwatch text-[11px]"></i>
+            {{ 'setups.ai.lapTime' | translate }}</span
+          >
+          <input
+            class="input input-bordered w-full"
+            formControlName="lapTime"
+            [placeholder]="'setups.ai.lapTimePlaceholder' | translate"
+            type="text"
+          />
+        </label>
+        <div class="flex items-end">
+          <button
+            type="button"
+            class="btn btn-primary w-full md:w-auto"
+            [disabled]="aiDifficultyLoading || !aiDifficultyCurveAvailable"
+            (click)="calculateAiDifficulty()"
+          >
+            <i
+              class="text-xs"
+              [class.fa-solid]="true"
+              [class.fa-spinner]="aiDifficultyLoading"
+              [class.fa-spin]="aiDifficultyLoading"
+              [class.fa-calculator]="!aiDifficultyLoading"
+            ></i>
+            {{
+              aiDifficultyLoading
+                ? ('common.calculating' | translate)
+                : ('setups.ai.calculate' | translate)
+            }}
+          </button>
+        </div>
+      </div>
+      @if (!aiDifficultyCurveAvailable) {
+        <p class="mt-2 text-sm text-base-content/70">
+          {{ 'setups.ai.noCurve' | translate }}
+        </p>
+      }
+      @if (aiDifficultyError) {
+        <div class="alert alert-error mt-2 py-2 text-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ aiDifficultyError }}</span>
+        </div>
+      }
+      @if (aiDifficultyResult) {
+        <div class="mt-3 flex flex-wrap gap-2">
+          <div class="rounded-box border border-base-300 bg-base-200 p-3 text-sm">
+            <p class="text-xs text-base-content/70">{{ 'setups.ai.recommended' | translate }}</p>
+            <p class="mt-1 text-lg font-bold">{{ aiDifficultyResult.difficulty }}</p>
+          </div>
+          <div class="rounded-box border border-base-300 bg-base-200 p-3 text-sm">
+            <p class="text-xs text-base-content/70">{{ 'setups.ai.confidence' | translate }}</p>
+            <p class="mt-1 font-medium">
+              {{ aiDifficultyResult.confidence.min }}-{{ aiDifficultyResult.confidence.max }}
+            </p>
+          </div>
+          <div class="rounded-box border border-base-300 bg-base-200 p-3 text-sm">
+            <p class="text-xs text-base-content/70">{{ 'setups.ai.notes' | translate }}</p>
+            <p class="mt-1 font-medium">{{ aiDifficultyResult.notes }}</p>
+          </div>
+        </div>
+      }
+    </article>
   }
 
   @if (recommendedSetups.length > 0) {
-    <article class="panel-card setup-recommended">
-      <h3>Recommended for you</h3>
-      <div class="setup-recommended__list">
+    <article class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+      <h3 class="flex items-center gap-2 text-base font-semibold">
+        <i class="fa-solid fa-star text-sm text-base-content/70"></i>
+        {{ 'setups.recommended.title' | translate }}
+      </h3>
+      <div class="mt-3 flex flex-wrap gap-2">
         @for (setup of recommendedSetups; track setup) {
-          <button type="button" class="setup-recommended__item" (click)="openRecommended(setup)">
-            <strong>{{ setup.title }}</strong>
-            <span>{{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }}</span>
-            <small>Score {{ setup.score }}</small>
+          <button
+            type="button"
+            class="w-full rounded-box border border-base-300 bg-base-200 p-3 text-left transition hover:bg-base-300 md:min-w-[220px] md:flex-1"
+            (click)="openRecommended(setup)"
+          >
+            <strong class="flex items-center gap-2 text-sm">
+              <i class="fa-solid fa-wrench text-[11px] text-base-content/70"></i>
+              {{ setup.title }}
+            </strong>
+            <span class="mt-1 block text-xs text-base-content/70"
+              >{{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }}</span
+            >
+            <small class="mt-1 block text-xs text-base-content/70">{{
+              'setups.recommended.score' | translate: {score: setup.score}
+            }}</small>
           </button>
         }
       </div>
     </article>
   }
 
-  <div class="setup-main">
-    <article class="panel-card setup-catalog">
-      <div class="setup-catalog__head">
-        <h3>Setup catalog</h3>
-        <div class="setup-catalog__head-actions">
-          <span class="setup-chip">{{ filteredSetups }} / {{ totalSetups }} results</span>
-          <button type="button" class="btn-secondary btn-secondary--tiny" (click)="clearSearch()">
-            Reset Filters
+  <article class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <h3 class="flex items-center gap-2 text-base font-semibold">
+        <i class="fa-solid fa-table-list text-sm text-base-content/70"></i>
+        {{ 'setups.catalog.title' | translate }}
+      </h3>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="badge badge-ghost">{{
+          'setups.catalog.results' | translate: {visible: filteredSetups, total: totalSetups}
+        }}</span>
+        <label class="flex items-center gap-2">
+          <span class="text-xs text-base-content/70">{{ 'setups.sort.label' | translate }}</span>
+          <select
+            class="select select-bordered select-xs"
+            [ngModel]="selectedSortOption"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="setSortOption($event)"
+          >
+            @for (option of sortOptions; track option.value) {
+              <option [value]="option.value">{{ option.labelKey | translate }}</option>
+            }
+          </select>
+        </label>
+        <button type="button" class="btn btn-outline btn-xs" (click)="exportVisibleSetupsCsv()">
+          <i class="fa-solid fa-file-csv text-[11px]"></i>
+          {{ 'setups.actions.exportVisibleCsv' | translate }}
+        </button>
+        <button type="button" class="btn btn-outline btn-xs" (click)="clearSearch()">
+          <i class="fa-solid fa-filter-circle-xmark text-[11px]"></i>
+          {{ 'setups.actions.resetFilters' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-3 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+      <div role="tablist" class="tabs tabs-boxed tabs-sm w-fit">
+        <button
+          type="button"
+          role="tab"
+          class="tab gap-2"
+          [class.tab-active]="setupLibraryView === 'all'"
+          (click)="setLibraryView('all')"
+        >
+          {{ libraryViewLabelKey('all') | translate }}
+          <span class="badge badge-ghost badge-xs">{{ libraryAllCount }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab gap-2"
+          [class.tab-active]="setupLibraryView === 'mine'"
+          (click)="setLibraryView('mine')"
+        >
+          {{ libraryViewLabelKey('mine') | translate }}
+          <span class="badge badge-ghost badge-xs">{{ libraryMineCount }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab gap-2"
+          [class.tab-active]="setupLibraryView === 'favorites'"
+          (click)="setLibraryView('favorites')"
+        >
+          {{ libraryViewLabelKey('favorites') | translate }}
+          <span class="badge badge-ghost badge-xs">{{ libraryFavoritesCount }}</span>
+        </button>
+      </div>
+      <p class="text-xs text-base-content/70">
+        {{ 'setups.library.helper' | translate }}
+      </p>
+    </div>
+
+    <div class="mt-2 rounded-box border border-base-300 bg-base-200 p-3">
+      <div class="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+        <div class="join w-full xl:max-w-[420px]">
+          <input
+            class="input input-bordered input-sm join-item w-full"
+            [(ngModel)]="newPresetName"
+            [ngModelOptions]="{standalone: true}"
+            [placeholder]="'setups.presets.namePlaceholder' | translate"
+          />
+          <button type="button" class="btn btn-sm join-item" (click)="saveCurrentFiltersAsPreset()">
+            <i class="fa-solid fa-bookmark text-[11px]"></i>
+            {{ 'setups.presets.save' | translate }}
           </button>
         </div>
-      </div>
-      @if (activeFilterTags.length > 0) {
-        <div class="setup-active-filters">
-          @for (tag of activeFilterTags; track tag.key + ':' + tag.value) {
-            <button type="button" class="setup-filter-tag" (click)="removeFilterTag(tag)">
-              <span>{{ tag.label }}</span>
-              <strong>×</strong>
-            </button>
+        <div class="flex flex-wrap gap-2">
+          @for (preset of filterPresets; track preset.id) {
+            <div class="join">
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs join-item"
+                (click)="applyFilterPreset(preset.id)"
+              >
+                <i class="fa-solid fa-filter text-[10px]"></i>
+                {{ preset.name }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs join-item"
+                (click)="deleteFilterPreset(preset.id)"
+              >
+                <i class="fa-solid fa-xmark text-[10px]"></i>
+              </button>
+            </div>
+          }
+          @if (filterPresets.length === 0) {
+            <span class="text-xs text-base-content/70">{{
+              'setups.presets.empty' | translate
+            }}</span>
           }
         </div>
-      }
-      @if (loading) {
-        <p class="setup-muted">Loading setups...</p>
-      }
-      @if (!loading && treeRows.length === 0) {
-        <p class="setup-empty">No setups found.</p>
-      }
-      @if (!loading) {
-        <div class="setup-tree-wrap">
-          <table class="setup-tree" [formGroup]="searchForm">
-            <thead>
-              <tr>
-                <th>Hierarchy</th>
-                <th>Title</th>
-                <th>Score</th>
-                <th>Votes</th>
-                <th>Created</th>
-              </tr>
-              <tr class="setup-tree__filters">
-                <th>
-                  <div class="filter-cell filter-cell--stack">
-                    <app-multi-autocomplete-filter
-                      [dense]="true"
-                      placeholder="Game"
-                      [options]="gameFilterOptions"
-                      [selectedValues]="selectedGameFilters"
-                      (selectedValuesChange)="onGameFiltersChange($event)"
-                    />
-                    <app-multi-autocomplete-filter
-                      [dense]="true"
-                      placeholder="Track"
-                      [options]="trackFilterOptions"
-                      [selectedValues]="selectedTrackFilters"
-                      (selectedValuesChange)="onTrackFiltersChange($event)"
-                    />
-                  </div>
-                </th>
-                <th>
-                  <input
-                    class="field field--dense"
-                    formControlName="query"
-                    placeholder="Search title/notes"
-                  />
-                </th>
-                <th class="filter-placeholder">-</th>
-                <th>
-                  <div class="filter-cell filter-cell--split">
-                    <app-multi-autocomplete-filter
-                      [dense]="true"
-                      placeholder="Session"
-                      [options]="sessionFilterOptions"
-                      [selectedValues]="selectedSessionFilters"
-                      (selectedValuesChange)="onSessionFiltersChange($event)"
-                    />
-                    <app-multi-autocomplete-filter
-                      [dense]="true"
-                      placeholder="Weather"
-                      [options]="weatherFilterOptions"
-                      [selectedValues]="selectedWeatherFilters"
-                      (selectedValuesChange)="onWeatherFiltersChange($event)"
-                    />
-                  </div>
-                </th>
-                <th>
+      </div>
+    </div>
+
+    @if (activeFilterTags.length > 0) {
+      <div class="mt-3 flex flex-wrap gap-2">
+        @for (tag of activeFilterTags; track tag.key + ':' + tag.value) {
+          <button type="button" class="btn btn-outline btn-xs" (click)="removeFilterTag(tag)">
+            {{ tag.label }} x
+          </button>
+        }
+      </div>
+    }
+
+    @if (loading) {
+      <p class="mt-3 flex items-center gap-2 text-sm text-base-content/70">
+        <i class="fa-solid fa-spinner fa-spin"></i>{{ 'setups.messages.loading' | translate }}
+      </p>
+    }
+    @if (!loading && treeRows.length === 0) {
+      <p class="mt-3 flex items-center gap-2 text-sm text-base-content/70">
+        <i class="fa-regular fa-folder-open"></i>{{ 'setups.messages.empty' | translate }}
+      </p>
+    }
+
+    @if (!loading) {
+      <div class="mt-3 max-h-[62vh] overflow-auto" [formGroup]="searchForm">
+        <table class="table table-zebra">
+          <thead class="sticky top-0 z-20">
+            <tr class="bg-base-100">
+              <th>
+                <i class="fa-solid fa-diagram-project mr-1 text-[11px]"></i
+                >{{ 'setups.table.hierarchy' | translate }}
+              </th>
+              <th>
+                <i class="fa-solid fa-tag mr-1 text-[11px]"></i
+                >{{ 'setups.table.title' | translate }}
+              </th>
+              <th>
+                <i class="fa-solid fa-medal mr-1 text-[11px]"></i
+                >{{ 'setups.table.score' | translate }}
+              </th>
+              <th>
+                <i class="fa-solid fa-thumbs-up mr-1 text-[11px]"></i
+                >{{ 'setups.table.votes' | translate }}
+              </th>
+              <th>
+                <i class="fa-solid fa-calendar-day mr-1 text-[11px]"></i
+                >{{ 'setups.table.created' | translate }}
+              </th>
+            </tr>
+            <tr class="bg-base-100">
+              <th>
+                <div class="flex flex-col gap-1">
                   <app-multi-autocomplete-filter
                     [dense]="true"
-                    placeholder="Input"
-                    [options]="inputDeviceFilterOptions"
-                    [selectedValues]="selectedInputFilters"
-                    (selectedValuesChange)="onInputFiltersChange($event)"
+                    [placeholder]="'setups.filters.game' | translate"
+                    [options]="gameFilterOptions"
+                    [selectedValues]="selectedGameFilters"
+                    (selectedValuesChange)="onGameFiltersChange($event)"
                   />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (row of treeRows; track trackByTreeRow($index, row)) {
-                @if (row.type === 'group') {
-                  <tr class="setup-tree__group" [class]="'setup-tree__group level-' + row.level">
-                    <td colspan="5" [style.padding-left.px]="10 + row.level * 20">
-                      <button type="button" class="tree-toggle" (click)="toggleGroup(row)">
-                        <span class="tree-toggle__mark">{{
-                          isGroupExpanded(row) ? '▼' : '▶'
-                        }}</span>
-                        <strong>{{ row.label }}</strong>
-                        <span class="setup-chip">{{ row.count }}</span>
+                  <app-multi-autocomplete-filter
+                    [dense]="true"
+                    [placeholder]="'setups.filters.track' | translate"
+                    [options]="trackFilterOptions"
+                    [selectedValues]="selectedTrackFilters"
+                    (selectedValuesChange)="onTrackFiltersChange($event)"
+                  />
+                </div>
+              </th>
+              <th>
+                <input
+                  class="input input-bordered input-sm w-full"
+                  formControlName="query"
+                  [placeholder]="'setups.filters.search' | translate"
+                />
+              </th>
+              <th>-</th>
+              <th>
+                <div class="flex flex-col gap-1">
+                  <app-multi-autocomplete-filter
+                    [dense]="true"
+                    [placeholder]="'setups.filters.session' | translate"
+                    [options]="sessionFilterOptions"
+                    [selectedValues]="selectedSessionFilters"
+                    (selectedValuesChange)="onSessionFiltersChange($event)"
+                  />
+                  <app-multi-autocomplete-filter
+                    [dense]="true"
+                    [placeholder]="'setups.filters.weather' | translate"
+                    [options]="weatherFilterOptions"
+                    [selectedValues]="selectedWeatherFilters"
+                    (selectedValuesChange)="onWeatherFiltersChange($event)"
+                  />
+                </div>
+              </th>
+              <th>
+                <app-multi-autocomplete-filter
+                  [dense]="true"
+                  [placeholder]="'setups.filters.input' | translate"
+                  [options]="inputDeviceFilterOptions"
+                  [selectedValues]="selectedInputFilters"
+                  (selectedValuesChange)="onInputFiltersChange($event)"
+                />
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of treeRows; track trackByTreeRow($index, row)) {
+              @if (row.type === 'group') {
+                <tr class="bg-base-300/30">
+                  <td colspan="5" [style.padding-left.px]="10 + row.level * 20">
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-xs px-0"
+                      (click)="toggleGroup(row)"
+                    >
+                      <i
+                        class="fa-solid text-[10px]"
+                        [class.fa-chevron-down]="isGroupExpanded(row)"
+                        [class.fa-chevron-right]="!isGroupExpanded(row)"
+                      ></i>
+                      {{ row.label }}
+                    </button>
+                    <span class="badge badge-ghost badge-sm ml-2">{{ row.count }}</span>
+                  </td>
+                </tr>
+              } @else {
+                <tr
+                  class="cursor-pointer transition-colors hover:bg-base-200/60"
+                  (click)="openSetupModal(row.setup)"
+                >
+                  <td [style.padding-left.px]="10 + row.level * 20">
+                    <span class="text-xs text-base-content/70"
+                      >{{ row.setup.gameCode | uppercase }} /
+                      {{ row.setup.trackSlug | uppercase }}</span
+                    >
+                  </td>
+                  <td>
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-xs h-6 min-h-0 w-6 p-0"
+                        (click)="toggleFavorite(row.setup, $event)"
+                      >
+                        <i
+                          class="text-[11px]"
+                          [class.fa-solid]="isFavorite(row.setup)"
+                          [class.fa-regular]="!isFavorite(row.setup)"
+                          [class.fa-star]="true"
+                        ></i>
                       </button>
-                    </td>
-                  </tr>
-                } @else {
-                  <tr class="setup-tree__leaf" (click)="openSetupModal(row.setup)">
-                    <td [style.padding-left.px]="10 + row.level * 20">
-                      <span class="setup-tree__leaf-path"
-                        >{{ row.setup.gameCode | uppercase }} /
-                        {{ row.setup.trackSlug | uppercase }}
-                      </span>
-                    </td>
-                    <td>{{ row.setup.title }}</td>
-                    <td>{{ row.setup.score }}</td>
-                    <td>{{ row.setup.upvotes }} / {{ row.setup.downvotes }}</td>
-                    <td>{{ row.setup.createdAt | date: 'dd MMM yyyy, HH:mm' }}</td>
-                  </tr>
-                }
+                      <span>{{ row.setup.title }}</span>
+                      @if (getSetupCommentCount(row.setup.id) > 0) {
+                        <span class="badge badge-ghost badge-xs">
+                          <i class="fa-solid fa-comment text-[9px]"></i>
+                          {{ getSetupCommentCount(row.setup.id) }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td>{{ row.setup.score }}</td>
+                  <td>{{ row.setup.upvotes }} / {{ row.setup.downvotes }}</td>
+                  <td>{{ row.setup.createdAt | date: 'dd MMM yyyy, HH:mm' }}</td>
+                </tr>
               }
-            </tbody>
-          </table>
-        </div>
-      }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <div class="mt-3">
       <app-erp-pagination
         mode="backend"
         [page]="page"
@@ -178,98 +461,199 @@
         (pageChange)="onPaginationPageChange($event)"
         (pageSizeChange)="onPaginationPageSizeChange($event)"
       />
-    </article>
-  </div>
+    </div>
+  </article>
 
   @if (publishModalOpen) {
-    <div class="setup-modal-backdrop" (click)="closePublishModal()">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      (click)="closePublishModal()"
+    >
       <article
-        class="setup-modal setup-modal--publish panel-card"
+        class="w-full max-w-[1080px] max-h-[92vh] overflow-y-auto rounded-box border border-base-300 bg-base-100 shadow-xl"
         (click)="$event.stopPropagation()"
       >
-        <header class="setup-modal__head">
+        <header
+          class="sticky top-0 z-20 flex items-center justify-between border-b border-base-300 bg-base-100 px-5 py-4"
+        >
           <div>
-            <h3>Publish setup</h3>
-            <p>{{ gameCode | uppercase }} / {{ trackSlug | uppercase }}</p>
+            <h3 class="flex items-center gap-2 text-lg font-semibold">
+              <i class="fa-solid fa-upload text-sm text-base-content/70"></i>
+              {{ 'setups.publishModal.title' | translate }}
+            </h3>
+            <p class="text-sm text-base-content/70">
+              {{ publishForm.controls.gameCode.getRawValue() | uppercase }} /
+              {{ publishForm.controls.trackSlug.getRawValue() | uppercase }}
+            </p>
           </div>
-          <div class="setup-modal__head-actions">
-            <button type="button" class="setup-btn setup-btn--cancel" (click)="closePublishModal()">
-              Close
-            </button>
-          </div>
+          <button type="button" class="btn btn-outline btn-xs" (click)="closePublishModal()">
+            <i class="fa-solid fa-xmark text-[11px]"></i>
+            {{ 'common.close' | translate }}
+          </button>
         </header>
-        <form [formGroup]="publishForm" class="setup-publish__form">
-          <label class="field-group">
-            <span>Title</span>
-            <input class="field" formControlName="title" type="text" />
-          </label>
-          <label class="field-group">
-            <span>Notes</span>
-            <textarea class="field" formControlName="notes" rows="3"></textarea>
-          </label>
-          <div class="setup-context-grid">
-            <label class="field-group">
-              <span>Session</span>
-              <select class="field" formControlName="sessionType">
-                @for (item of sessionOptions; track item) {
-                  <option [value]="item">{{ item }}</option>
-                }
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Weather</span>
-              <select class="field" formControlName="weatherCondition">
-                @for (item of weatherOptions; track item) {
-                  <option [value]="item">{{ item }}</option>
-                }
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Assists</span>
-              <input class="field" formControlName="assistsPreset" type="text" />
-            </label>
-            <label class="field-group">
-              <span>Input</span>
-              <select class="field" formControlName="inputDevice">
-                @for (item of inputDeviceOptions; track item) {
-                  <option [value]="item">{{ item }}</option>
-                }
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Fuel kg</span>
-              <input class="field" formControlName="fuelLoadKg" type="number" />
-            </label>
-            <label class="field-group">
-              <span>Tyre</span>
-              <input class="field" formControlName="tyreCompound" type="text" />
-            </label>
-          </div>
+
+        <form [formGroup]="publishForm" class="flex flex-col gap-4 p-5">
+          <section class="rounded-box border border-base-300 bg-base-200 p-4">
+            <h4 class="mb-3 flex items-center gap-2 text-sm font-semibold">
+              <i class="fa-solid fa-map-location-dot text-[11px] text-base-content/70"></i>
+              {{ 'setups.publishModal.game' | translate }} /
+              {{ 'setups.publishModal.track' | translate }}
+            </h4>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.game' | translate
+                }}</span>
+                <select
+                  class="select select-bordered w-full"
+                  formControlName="gameCode"
+                  (change)="onPublishGameChange($any($event.target).value)"
+                >
+                  <option value="">{{ 'common.selectOption' | translate }}</option>
+                  @for (option of gameFilterOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.track' | translate
+                }}</span>
+                <select
+                  class="select select-bordered w-full"
+                  formControlName="trackSlug"
+                  (change)="onPublishTrackChange($any($event.target).value)"
+                >
+                  <option value="">{{ 'common.selectOption' | translate }}</option>
+                  @for (option of publishTrackOptions; track option.slug) {
+                    <option [value]="option.slug">{{ option.label }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="rounded-box border border-base-300 bg-base-200 p-4">
+            <h4 class="mb-3 flex items-center gap-2 text-sm font-semibold">
+              <i class="fa-solid fa-file-pen text-[11px] text-base-content/70"></i>
+              {{ 'setups.publishModal.title' | translate }}
+            </h4>
+            <div class="grid grid-cols-1 gap-3">
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.titleLabel' | translate
+                }}</span>
+                <input class="input input-bordered w-full" formControlName="title" type="text" />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.notesLabel' | translate
+                }}</span>
+                <textarea
+                  class="textarea textarea-bordered w-full"
+                  formControlName="notes"
+                  rows="3"
+                ></textarea>
+              </label>
+            </div>
+
+            <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.session' | translate
+                }}</span>
+                <select class="select select-bordered w-full" formControlName="sessionType">
+                  @for (item of sessionOptions; track item) {
+                    <option [value]="item">{{ 'setups.enums.session.' + item | translate }}</option>
+                  }
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.weather' | translate
+                }}</span>
+                <select class="select select-bordered w-full" formControlName="weatherCondition">
+                  @for (item of weatherOptions; track item) {
+                    <option [value]="item">{{ 'setups.enums.weather.' + item | translate }}</option>
+                  }
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.assists' | translate
+                }}</span>
+                <input
+                  class="input input-bordered w-full"
+                  formControlName="assistsPreset"
+                  type="text"
+                />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.input' | translate
+                }}</span>
+                <select class="select select-bordered w-full" formControlName="inputDevice">
+                  @for (item of inputDeviceOptions; track item) {
+                    <option [value]="item">{{ 'setups.enums.input.' + item | translate }}</option>
+                  }
+                </select>
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.fuel' | translate
+                }}</span>
+                <input
+                  class="input input-bordered w-full"
+                  formControlName="fuelLoadKg"
+                  type="number"
+                />
+              </label>
+              <label class="flex flex-col gap-1">
+                <span class="text-xs text-base-content/80">{{
+                  'setups.publishModal.tyre' | translate
+                }}</span>
+                <input
+                  class="input input-bordered w-full"
+                  formControlName="tyreCompound"
+                  type="text"
+                />
+              </label>
+            </div>
+          </section>
+
           @if (setupFields.length > 0) {
-            <div class="setup-fields">
-              <h4>Setup fields</h4>
-              <div class="setup-fields__grid">
+            <section class="rounded-box border border-base-300 bg-base-200 p-4">
+              <h4 class="flex items-center gap-2 text-sm font-semibold">
+                <i class="fa-solid fa-sliders text-[11px] text-base-content/70"></i>
+                {{ 'setups.publishModal.setupFields' | translate }}
+              </h4>
+              <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 @for (field of setupFields; track field) {
                   @if (field.fieldType !== 'BOOLEAN') {
-                    <label class="field-group">
-                      <span>{{ field.fieldLabel }}</span>
+                    <label
+                      class="flex flex-col gap-1 rounded-box border border-base-300 bg-base-100 p-2"
+                    >
+                      <span class="text-xs text-base-content/80">{{ field.fieldLabel }}</span>
                       @if (field.fieldType === 'TEXT') {
                         <input
-                          class="field"
+                          class="input input-bordered w-full"
                           type="text"
                           [formControl]="getFieldControl(field.fieldKey)"
                         />
                       }
                       @if (field.fieldType === 'NUMBER') {
                         <input
-                          class="field"
+                          class="input input-bordered w-full"
                           type="number"
                           [formControl]="getFieldControl(field.fieldKey)"
                         />
                       }
                       @if (field.fieldType === 'SELECT') {
-                        <select class="field" [formControl]="getFieldControl(field.fieldKey)">
-                          <option value="">Select...</option>
+                        <select
+                          class="select select-bordered w-full"
+                          [formControl]="getFieldControl(field.fieldKey)"
+                        >
+                          <option value="">{{ 'common.selectOption' | translate }}</option>
                           @for (option of field.selectOptions; track option) {
                             <option [value]="option">{{ option }}</option>
                           }
@@ -277,30 +661,87 @@
                       }
                     </label>
                   } @else {
-                    <label class="setup-fields__checkbox"
-                      ><input
-                        type="checkbox"
-                        [formControl]="getFieldControl(field.fieldKey)"
-                      /><span>{{ field.fieldLabel }}</span></label
+                    <label
+                      class="label cursor-pointer justify-start gap-2 rounded-box border border-base-300 bg-base-100 px-2 py-2"
                     >
+                      <input
+                        type="checkbox"
+                        class="checkbox checkbox-sm"
+                        [formControl]="getFieldControl(field.fieldKey)"
+                      />
+                      <span class="label-text">{{ field.fieldLabel }}</span>
+                    </label>
                   }
                 }
               </div>
-            </div>
+            </section>
+          } @else {
+            <section class="rounded-box border border-warning/50 bg-warning/10 p-3 text-sm">
+              <p class="flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-[11px]"></i>
+                {{ 'setups.messages.noSchema' | translate }}
+              </p>
+            </section>
           }
-          <div class="setup-publish__actions">
+
+          <section class="rounded-box border border-base-300 bg-base-200 p-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h4 class="flex items-center gap-2 text-sm font-medium">
+                <i class="fa-solid fa-wand-magic-sparkles text-[11px] text-base-content/70"></i>
+                {{ 'setups.automation.title' | translate }}
+              </h4>
+              <span class="badge badge-ghost">{{ publishReadinessPercent }}%</span>
+            </div>
+            <progress
+              class="progress progress-primary mt-2 w-full"
+              [value]="publishReadinessPercent"
+              max="100"
+            ></progress>
+            <div class="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2">
+              @for (check of publishReadinessChecks; track check.labelKey) {
+                <div class="rounded-box border border-base-300 bg-base-100 px-2 py-1 text-xs">
+                  <span class="flex items-center gap-2">
+                    <i
+                      class="text-[11px]"
+                      [class.fa-solid]="true"
+                      [class.fa-circle-check]="check.done"
+                      [class.fa-circle]="!check.done"
+                      [class.text-success]="check.done"
+                      [class.text-base-content/50]="!check.done"
+                    ></i>
+                    {{ check.labelKey | translate }}
+                  </span>
+                </div>
+              }
+            </div>
+          </section>
+
+          <div
+            class="sticky bottom-0 z-10 -mx-5 -mb-5 mt-1 flex flex-wrap items-center justify-end gap-2 border-t border-base-300 bg-base-100 px-5 py-3"
+          >
+            <label class="btn btn-outline btn-sm cursor-pointer">
+              <i class="fa-solid fa-file-import text-[11px]"></i>
+              {{ 'setups.actions.importJson' | translate }}
+              <input
+                type="file"
+                accept="application/json"
+                hidden
+                (change)="importSetupFile($event)"
+              />
+            </label>
             <button
               type="button"
-              class="btn-primary"
+              class="btn btn-primary btn-sm"
               (click)="publish()"
-              [disabled]="publishing || setupFields.length === 0"
+              [disabled]="publishing || publishForm.invalid || setupFields.length === 0"
             >
-              {{ publishing ? 'Publishing...' : 'Publish setup' }}
+              <i class="fa-solid fa-paper-plane text-[11px]"></i>
+              {{
+                publishing
+                  ? ('common.publishing' | translate)
+                  : ('setups.actions.publishSetup' | translate)
+              }}
             </button>
-            <label class="setup-import-btn">
-              Import setup JSON
-              <input type="file" accept="application/json" (change)="importSetupFile($event)" />
-            </label>
           </div>
         </form>
       </article>
@@ -308,105 +749,166 @@
   }
 
   @if (selectedSetup; as setup) {
-    <div class="setup-modal-backdrop" (click)="onModalBackdropClick($event)">
-      <article class="setup-modal panel-card" (click)="$event.stopPropagation()">
-        <header class="setup-modal__head">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      (click)="onModalBackdropClick($event)"
+    >
+      <article
+        class="w-full max-w-[980px] max-h-[90vh] overflow-y-auto rounded-box border border-base-300 bg-base-100 p-5 shadow-xl"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3>{{ setup.title }}</h3>
-            <p>
-              {{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }} •
+            <h3 class="flex items-center gap-2 text-lg font-semibold">
+              <i class="fa-solid fa-gears text-sm text-base-content/70"></i>{{ setup.title }}
+            </h3>
+            <p class="text-sm text-base-content/70">
+              {{ setup.gameCode | uppercase }} / {{ setup.trackSlug | uppercase }} -
               {{ setup.createdAt | date: 'dd MMM yyyy, HH:mm' }}
             </p>
           </div>
-          <div class="setup-modal__head-actions">
-            <button type="button" class="setup-btn setup-btn--cancel" (click)="copyShareLink()">
-              Share
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline btn-xs" (click)="toggleFavorite(setup)">
+              <i
+                class="text-[11px]"
+                [class.fa-solid]="isFavorite(setup)"
+                [class.fa-regular]="!isFavorite(setup)"
+                [class.fa-star]="true"
+              ></i>
+              {{
+                isFavorite(setup)
+                  ? ('setups.actions.removeFavorite' | translate)
+                  : ('setups.actions.addFavorite' | translate)
+              }}
+            </button>
+            <button type="button" class="btn btn-outline btn-xs" (click)="copyShareLink()">
+              <i class="fa-solid fa-share-nodes text-[11px]"></i>
+              {{ 'setups.actions.share' | translate }}
             </button>
             <button
               type="button"
-              class="setup-btn setup-btn--cancel"
-              (click)="exportSelectedSetup()"
+              class="btn btn-outline btn-xs"
+              (click)="duplicateSelectedSetupToDraft()"
             >
-              Export
+              <i class="fa-solid fa-copy text-[11px]"></i>
+              {{ 'setups.actions.duplicateToDraft' | translate }}
             </button>
-            <button type="button" class="setup-btn setup-btn--cancel" (click)="closeSetupModal()">
-              Close
+            <button type="button" class="btn btn-outline btn-xs" (click)="exportSelectedSetup()">
+              <i class="fa-solid fa-file-export text-[11px]"></i>
+              {{ 'setups.actions.export' | translate }}
+            </button>
+            <button type="button" class="btn btn-outline btn-xs" (click)="closeSetupModal()">
+              <i class="fa-solid fa-xmark text-[11px]"></i>
+              {{ 'common.close' | translate }}
             </button>
           </div>
         </header>
-        <div class="setup-modal__meta">
-          <span class="setup-chip">Score {{ setup.score }}</span>
-          <span class="setup-chip">👍 {{ setup.upvotes }}</span>
-          <span class="setup-chip">👎 {{ setup.downvotes }}</span>
-          <span class="setup-chip">Session {{ setup.sessionType || '-' }}</span>
-          <span class="setup-chip">Weather {{ setup.weatherCondition || '-' }}</span>
-          <span class="setup-chip">Input {{ setup.inputDevice || '-' }}</span>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <span class="badge badge-ghost"
+            >{{ 'setups.table.score' | translate }} {{ setup.score }}</span
+          >
+          <span class="badge badge-ghost"
+            >{{ 'setups.votes.up' | translate }} {{ setup.upvotes }}</span
+          >
+          <span class="badge badge-ghost"
+            >{{ 'setups.votes.down' | translate }} {{ setup.downvotes }}</span
+          >
+          <span class="badge badge-ghost">
+            {{ 'setups.publishModal.session' | translate }}
+            {{
+              setup.sessionType
+                ? ('setups.enums.session.' + setup.sessionType | translate)
+                : ('common.notAvailable' | translate)
+            }}
+          </span>
+          <span class="badge badge-ghost">
+            {{ 'setups.publishModal.weather' | translate }}
+            {{
+              setup.weatherCondition
+                ? ('setups.enums.weather.' + setup.weatherCondition | translate)
+                : ('common.notAvailable' | translate)
+            }}
+          </span>
+          <span class="badge badge-ghost">
+            {{ 'setups.publishModal.input' | translate }}
+            {{
+              setup.inputDevice
+                ? ('setups.enums.input.' + setup.inputDevice | translate)
+                : ('common.notAvailable' | translate)
+            }}
+          </span>
         </div>
-        <div class="setup-card__actions">
+
+        <div class="mt-3 flex flex-wrap gap-2">
           <button
             type="button"
-            class="setup-btn setup-btn--edit"
-            [class.is-active]="setup.userVote === 1"
+            class="btn btn-outline btn-xs"
+            [class.btn-active]="setup.userVote === 1"
             (click)="vote(setup, 1)"
           >
-            Upvote
+            {{ 'setups.actions.upvote' | translate }}
           </button>
           <button
             type="button"
-            class="setup-btn setup-btn--delete"
-            [class.is-active]="setup.userVote === -1"
+            class="btn btn-outline btn-xs"
+            [class.btn-active]="setup.userVote === -1"
             (click)="vote(setup, -1)"
           >
-            Downvote
+            {{ 'setups.actions.downvote' | translate }}
           </button>
           @if (canEdit(setup)) {
-            <button type="button" class="setup-btn setup-btn--cancel" (click)="beginEdit(setup)">
-              Edit
+            <button type="button" class="btn btn-outline btn-xs" (click)="beginEdit(setup)">
+              {{ 'common.edit' | translate }}
             </button>
           }
           @if (canEdit(setup)) {
             <button
               type="button"
-              class="setup-btn setup-btn--delete"
+              class="btn btn-error btn-xs"
               [disabled]="deletingSetupId === setup.id"
               (click)="deleteSetup(setup)"
             >
-              Delete
+              {{ 'common.delete' | translate }}
             </button>
           }
           @if (isAdmin() && !setup.hidden) {
-            <button type="button" class="setup-btn setup-btn--delete" (click)="hideSelectedSetup()">
-              Hide
+            <button type="button" class="btn btn-warning btn-xs" (click)="hideSelectedSetup()">
+              {{ 'setups.actions.hide' | translate }}
             </button>
           }
           @if (isAdmin() && setup.hidden) {
-            <button type="button" class="setup-btn setup-btn--edit" (click)="unhideSelectedSetup()">
-              Unhide
+            <button type="button" class="btn btn-success btn-xs" (click)="unhideSelectedSetup()">
+              {{ 'setups.actions.unhide' | translate }}
             </button>
           }
         </div>
-        <label class="field-group">
-          <span>Report setup</span>
-          <div class="setup-report-row">
+
+        <label class="mt-3 flex flex-col gap-1">
+          <span class="text-xs text-base-content/80">{{
+            'setups.actions.reportSetup' | translate
+          }}</span>
+          <div class="flex flex-wrap gap-2">
             <input
-              class="field"
+              class="input input-bordered w-full"
               [(ngModel)]="reportReason"
               [ngModelOptions]="{standalone: true}"
-              placeholder="Reason"
+              [placeholder]="'setups.actions.reportReason' | translate"
             />
-            <button
-              type="button"
-              class="setup-btn setup-btn--cancel"
-              (click)="reportSelectedSetup()"
-            >
-              Report
+            <button type="button" class="btn btn-outline btn-sm" (click)="reportSelectedSetup()">
+              {{ 'setups.actions.report' | translate }}
             </button>
           </div>
         </label>
-        <label class="field-group">
-          <span>Compare with</span>
-          <select class="field" [(ngModel)]="compareSetupId" [ngModelOptions]="{standalone: true}">
-            <option [ngValue]="null">No comparison</option>
+
+        <label class="mt-3 flex flex-col gap-1">
+          <span class="text-xs text-base-content/80">{{ 'setups.compare.label' | translate }}</span>
+          <select
+            class="select select-bordered w-full"
+            [(ngModel)]="compareSetupId"
+            [ngModelOptions]="{standalone: true}"
+          >
+            <option [ngValue]="null">{{ 'setups.compare.none' | translate }}</option>
             @for (candidate of compareCandidates; track candidate) {
               <option [ngValue]="candidate.id">
                 {{ candidate.title }} ({{ candidate.trackSlug }})
@@ -414,16 +916,78 @@
             }
           </select>
         </label>
+
+        <article class="mt-3 rounded-box border border-base-300 bg-base-200 p-3">
+          <h4 class="flex items-center gap-2 text-sm font-semibold">
+            <i class="fa-solid fa-users text-[11px] text-base-content/70"></i>
+            {{ 'setups.collab.title' | translate }}
+          </h4>
+          <p class="mt-1 text-xs text-base-content/70">
+            {{ 'setups.collab.subtitle' | translate }}
+          </p>
+          <div class="mt-2 flex flex-col gap-2 md:flex-row md:items-start">
+            <textarea
+              class="textarea textarea-bordered min-h-20 w-full flex-1"
+              [(ngModel)]="newCommentText"
+              [ngModelOptions]="{standalone: true}"
+              [placeholder]="'setups.collab.commentPlaceholder' | translate"
+            ></textarea>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              (click)="addCommentToSelectedSetup()"
+            >
+              <i class="fa-solid fa-comment-medical text-[11px]"></i>
+              {{ 'setups.collab.addComment' | translate }}
+            </button>
+          </div>
+          <div class="mt-3 max-h-56 overflow-y-auto">
+            @if (selectedSetupComments.length === 0) {
+              <p class="text-sm text-base-content/70">
+                {{ 'setups.collab.empty' | translate }}
+              </p>
+            } @else {
+              <div class="flex flex-col gap-2">
+                @for (comment of selectedSetupComments; track comment.id) {
+                  <article class="rounded-box border border-base-300 bg-base-100 p-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <p class="text-xs font-medium text-base-content/80">{{ comment.author }}</p>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[11px] text-base-content/60">{{
+                          comment.createdAt | date: 'dd MMM yyyy, HH:mm'
+                        }}</span>
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-xs h-6 min-h-0"
+                          (click)="deleteComment(comment.id)"
+                        >
+                          <i class="fa-solid fa-trash text-[10px]"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <p class="mt-1 text-sm">{{ comment.text }}</p>
+                  </article>
+                }
+              </div>
+            }
+          </div>
+        </article>
+
         @if (editingSetupId !== setup.id) {
-          <p class="setup-card__notes">{{ setup.notes || 'No description provided.' }}</p>
+          <p class="mt-3 text-sm text-base-content/80">
+            {{ setup.notes || ('setups.messages.noDescription' | translate) }}
+          </p>
           @if (setupFields.length > 0) {
-            <div class="setup-compare">
+            <div class="mt-3 flex flex-col gap-2">
               @for (field of setupFields; track field) {
-                <div class="setup-values__row" [class.is-different]="isDifferent(field)">
-                  <span class="setup-values__key">{{ field.fieldLabel }}</span>
-                  <span class="setup-values__value">{{ formatSetupValue(setup, field) }}</span>
+                <div
+                  class="grid grid-cols-1 gap-2 rounded-box border border-base-300 bg-base-200 p-2 md:grid-cols-[1fr_auto_auto]"
+                  [class.border-warning]="isDifferent(field)"
+                >
+                  <span class="text-sm font-medium">{{ field.fieldLabel }}</span>
+                  <span class="text-sm md:text-right">{{ formatSetupValue(setup, field) }}</span>
                   @if (compareSetup) {
-                    <span class="setup-values__value">{{
+                    <span class="text-sm md:text-right">{{
                       formatSetupValue(compareSetup, field)
                     }}</span>
                   }
@@ -432,42 +996,52 @@
             </div>
           }
         } @else {
-          <div class="setup-edit">
-            <label class="field-group"
-              ><span>Title</span
-              ><input class="field" [(ngModel)]="editTitle" [ngModelOptions]="{standalone: true}"
+          <div class="mt-3 flex flex-col gap-3">
+            <label class="flex flex-col gap-1"
+              ><span class="text-xs text-base-content/80">{{
+                'setups.publishModal.titleLabel' | translate
+              }}</span
+              ><input
+                class="input input-bordered w-full"
+                [(ngModel)]="editTitle"
+                [ngModelOptions]="{standalone: true}"
             /></label>
-            <label class="field-group"
-              ><span>Notes</span
+            <label class="flex flex-col gap-1"
+              ><span class="text-xs text-base-content/80">{{
+                'setups.publishModal.notesLabel' | translate
+              }}</span
               ><textarea
-                class="field"
+                class="textarea textarea-bordered w-full"
                 rows="3"
                 [(ngModel)]="editNotes"
                 [ngModelOptions]="{standalone: true}"
               ></textarea>
             </label>
-            <div class="setup-fields__grid">
+            <div class="flex flex-wrap gap-2">
               @for (field of setupFields; track field) {
                 @if (field.fieldType !== 'BOOLEAN') {
-                  <label class="field-group">
-                    <span>{{ field.fieldLabel }}</span>
+                  <label class="flex flex-col gap-1">
+                    <span class="text-xs text-base-content/80">{{ field.fieldLabel }}</span>
                     @if (field.fieldType === 'TEXT') {
                       <input
-                        class="field"
+                        class="input input-bordered w-full"
                         type="text"
                         [formControl]="getEditFieldControl(field.fieldKey)"
                       />
                     }
                     @if (field.fieldType === 'NUMBER') {
                       <input
-                        class="field"
+                        class="input input-bordered w-full"
                         type="number"
                         [formControl]="getEditFieldControl(field.fieldKey)"
                       />
                     }
                     @if (field.fieldType === 'SELECT') {
-                      <select class="field" [formControl]="getEditFieldControl(field.fieldKey)">
-                        <option value="">Select...</option>
+                      <select
+                        class="select select-bordered w-full"
+                        [formControl]="getEditFieldControl(field.fieldKey)"
+                      >
+                        <option value="">{{ 'common.selectOption' | translate }}</option>
                         @for (option of field.selectOptions; track option) {
                           <option [value]="option">{{ option }}</option>
                         }
@@ -475,21 +1049,23 @@
                     }
                   </label>
                 } @else {
-                  <label class="setup-fields__checkbox"
-                    ><input
+                  <label class="label cursor-pointer justify-start gap-2 px-0">
+                    <input
                       type="checkbox"
+                      class="checkbox checkbox-sm"
                       [formControl]="getEditFieldControl(field.fieldKey)"
-                    /><span>{{ field.fieldLabel }}</span></label
-                  >
+                    />
+                    <span class="label-text">{{ field.fieldLabel }}</span>
+                  </label>
                 }
               }
             </div>
-            <div class="setup-card__actions">
-              <button type="button" class="setup-btn setup-btn--save" (click)="saveEdit(setup)">
-                Save changes
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="btn btn-primary btn-sm" (click)="saveEdit(setup)">
+                {{ 'common.saveChanges' | translate }}
               </button>
-              <button type="button" class="setup-btn setup-btn--cancel" (click)="cancelEdit()">
-                Cancel edit
+              <button type="button" class="btn btn-outline btn-sm" (click)="cancelEdit()">
+                {{ 'setups.actions.cancelEdit' | translate }}
               </button>
             </div>
           </div>

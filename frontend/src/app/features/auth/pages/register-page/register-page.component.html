@@ -1,41 +1,77 @@
-<section class="auth-shell">
-  <article class="panel auth-card">
-    <p class="auth-eyebrow">Create Account</p>
-    <h1>Join F1 Sets</h1>
-    <p class="auth-copy">Set up your profile to manage your setup journey securely.</p>
+<section class="flex min-h-[70vh] items-center justify-center px-4 py-6">
+  <article
+    class="w-full max-w-[460px] rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+  >
+    <h1 class="flex items-center gap-2 text-2xl font-semibold">
+      <i class="fa-solid fa-user-plus text-lg text-base-content/70"></i>
+      {{ 'auth.register.title' | translate }}
+    </h1>
+    <p class="mt-2 text-sm text-base-content/70">{{ 'auth.register.subtitle' | translate }}</p>
 
-    <form (ngSubmit)="submit()" [formGroup]="form" class="auth-form" novalidate>
-      <label class="field-group">
-        <span>Display Name</span>
-        <input autocomplete="name" class="field" formControlName="displayName" type="text" />
+    <form (ngSubmit)="submit()" [formGroup]="form" class="mt-5 flex flex-col gap-3" novalidate>
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'auth.common.displayName' | translate
+        }}</span>
+        <input
+          autocomplete="name"
+          class="input input-bordered w-full"
+          formControlName="displayName"
+          type="text"
+        />
       </label>
 
-      <label class="field-group">
-        <span>Email</span>
-        <input autocomplete="email" class="field" formControlName="email" type="email" />
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'auth.common.email' | translate
+        }}</span>
+        <input
+          autocomplete="email"
+          class="input input-bordered w-full"
+          formControlName="email"
+          type="email"
+        />
       </label>
 
-      <label class="field-group">
-        <span>Password</span>
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'auth.common.password' | translate
+        }}</span>
         <input
           autocomplete="new-password"
-          class="field"
+          class="input input-bordered w-full"
           formControlName="password"
           type="password"
         />
       </label>
 
       @if (errorMessage) {
-        <p class="auth-error">{{ errorMessage }}</p>
+        <div class="alert alert-error py-2 text-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
       }
 
-      <button [disabled]="loading" class="btn-primary w-full" type="submit">
-        {{ loading ? 'Creating Account...' : 'Create Account' }}
+      <button [disabled]="loading" class="btn btn-primary w-full" type="submit">
+        <i
+          class="fa-solid"
+          [class.fa-spinner]="loading"
+          [class.fa-spin]="loading"
+          [class.fa-user-plus]="!loading"
+        ></i>
+        {{
+          loading
+            ? ('auth.register.creatingAccount' | translate)
+            : ('auth.register.createAccount' | translate)
+        }}
       </button>
     </form>
 
-    <div class="auth-links">
-      <a routerLink="/auth/login">Already have an account? Sign in</a>
+    <div class="mt-4 text-sm">
+      <a class="link link-hover" routerLink="/auth/login">
+        <i class="fa-solid fa-right-to-bracket mr-1 text-[11px]"></i>
+        {{ 'auth.register.alreadyHaveAccount' | translate }}
+      </a>
     </div>
   </article>
 </section>

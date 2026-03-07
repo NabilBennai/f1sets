@@ -95,3 +95,28 @@ export interface SetupReportListResponse {
   totalPages: number;
   reports: SetupReportItem[];
 }
+
+export interface AiDifficultyCurve {
+  gameCode: string;
+  trackSlug: string;
+  slope: number;
+  intercept: number;
+  esportsRefTimeMs: number | null;
+  avgRefTimeMs: number | null;
+  curveVersion: number;
+  source: string | null;
+}
+
+export interface CalculateAiDifficultyPayload {
+  lapTimeMs: number;
+}
+
+export interface AiDifficultyCalculationResponse {
+  difficulty: number;
+  confidence: {
+    min: number;
+    max: number;
+  };
+  curveVersion: number;
+  notes: string;
+}

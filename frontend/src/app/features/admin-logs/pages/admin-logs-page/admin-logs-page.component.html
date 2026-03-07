@@ -1,93 +1,121 @@
-<section class="admin-logs app-page">
-  <header class="admin-logs__titlebar app-page__header">
-    <div>
-      <h2 class="app-page__title">Admin Logs</h2>
-      <p class="admin-logs__muted app-page__subtitle">
-        ERP grid mode: header filters, server sort, JSON drill-down.
-      </p>
-    </div>
-    <div class="admin-logs__title-actions app-page__actions">
-      <button type="button" class="btn-secondary" [disabled]="loading" (click)="refresh()">
-        Refresh
-      </button>
-      <button type="button" class="btn-secondary" [disabled]="loading" (click)="clearFilters()">
-        Clear
-      </button>
+<section class="flex flex-col gap-4">
+  <header class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 class="flex items-center gap-2 text-xl font-semibold">
+          <i class="fa-solid fa-file-lines text-sm text-base-content/70"></i>
+          {{ 'adminLogs.title' | translate }}
+        </h2>
+        <p class="mt-1 text-sm text-base-content/70">{{ 'adminLogs.subtitle' | translate }}</p>
+      </div>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          [disabled]="loading"
+          (click)="refresh()"
+        >
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+          {{ 'common.refresh' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          [disabled]="loading"
+          (click)="clearFilters()"
+        >
+          <i class="fa-solid fa-filter-circle-xmark text-xs"></i>
+          {{ 'common.clear' | translate }}
+        </button>
+      </div>
     </div>
   </header>
 
   @if (errorMessage) {
-    <article class="state-card state-card--error">{{ errorMessage }}</article>
+    <article class="alert alert-error text-sm">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+    </article>
   }
 
-  <section class="panel-card p-0 admin-logs__grid-shell">
-    <div class="admin-logs__table-wrap">
-      <table class="admin-logs__table" [formGroup]="filters">
-        <thead>
-          <tr class="head-row head-row--labels">
+  <section class="overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <div class="max-h-[62vh] overflow-auto">
+      <table class="table table-zebra" [formGroup]="filters">
+        <thead class="sticky top-0 z-20">
+          <tr class="bg-base-100">
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('createdAt')">
-                Timestamp
-                <span class="sort-mark">{{ sortMark('createdAt') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('createdAt')"
+              >
+                {{ 'adminLogs.table.timestamp' | translate }} {{ sortMark('createdAt') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('level')">
-                Level
-                <span class="sort-mark">{{ sortMark('level') }}</span>
+              <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSort('level')">
+                {{ 'adminLogs.table.level' | translate }} {{ sortMark('level') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('httpMethod')">
-                Method
-                <span class="sort-mark">{{ sortMark('httpMethod') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('httpMethod')"
+              >
+                {{ 'adminLogs.table.method' | translate }} {{ sortMark('httpMethod') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('path')">
-                Path
-                <span class="sort-mark">{{ sortMark('path') }}</span>
+              <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSort('path')">
+                {{ 'adminLogs.table.path' | translate }} {{ sortMark('path') }}
               </button>
             </th>
-            <th>Query</th>
+            <th>{{ 'adminLogs.table.query' | translate }}</th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('statusCode')">
-                Status
-                <span class="sort-mark">{{ sortMark('statusCode') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('statusCode')"
+              >
+                {{ 'adminLogs.table.status' | translate }} {{ sortMark('statusCode') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('durationMs')">
-                Duration
-                <span class="sort-mark">{{ sortMark('durationMs') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('durationMs')"
+              >
+                {{ 'adminLogs.table.duration' | translate }} {{ sortMark('durationMs') }}
               </button>
             </th>
-            <th>User</th>
-            <th>IP</th>
-            <th>JSON</th>
+            <th>{{ 'adminLogs.table.user' | translate }}</th>
+            <th>{{ 'adminLogs.table.ip' | translate }}</th>
+            <th>{{ 'adminLogs.table.json' | translate }}</th>
           </tr>
 
-          <tr class="head-row head-row--filters">
+          <tr class="bg-base-100">
             <th>
-              <div class="filter-stack">
+              <div class="flex flex-col gap-1">
                 <input
-                  class="filter-control"
+                  class="input input-bordered input-sm w-full"
                   type="datetime-local"
                   formControlName="createdFrom"
-                  placeholder="from"
+                  [placeholder]="'adminLogs.filters.from' | translate"
                 />
                 <input
-                  class="filter-control"
+                  class="input input-bordered input-sm w-full"
                   type="datetime-local"
                   formControlName="createdTo"
-                  placeholder="to"
+                  [placeholder]="'adminLogs.filters.to' | translate"
                 />
               </div>
             </th>
             <th>
               <app-multi-autocomplete-filter
                 [dense]="true"
-                placeholder="Level"
+                [placeholder]="'adminLogs.filters.level' | translate"
                 [options]="levelOptions"
                 [selectedValues]="selectedLevels"
                 (selectedValuesChange)="onLevelsChange($event)"
@@ -96,7 +124,7 @@
             <th>
               <app-multi-autocomplete-filter
                 [dense]="true"
-                placeholder="Method"
+                [placeholder]="'adminLogs.filters.method' | translate"
                 [options]="methodOptions"
                 [selectedValues]="selectedMethods"
                 (selectedValuesChange)="onMethodsChange($event)"
@@ -104,38 +132,40 @@
             </th>
             <th>
               <input
-                class="filter-control"
+                class="input input-bordered input-sm w-full"
                 formControlName="pathContains"
-                placeholder="Contains path"
+                [placeholder]="'adminLogs.filters.pathContains' | translate"
               />
             </th>
-            <th class="filter-placeholder">-</th>
+            <th>-</th>
             <th>
               <app-multi-autocomplete-filter
                 [dense]="true"
-                placeholder="Status"
+                [placeholder]="'adminLogs.filters.status' | translate"
                 [options]="statusOptions"
                 [selectedValues]="selectedStatuses"
                 (selectedValuesChange)="onStatusesChange($event)"
               />
             </th>
-            <th class="filter-placeholder">-</th>
+            <th>-</th>
             <th>
               <input
-                class="filter-control"
+                class="input input-bordered input-sm w-full"
                 formControlName="userEmailContains"
-                placeholder="Email contains"
+                [placeholder]="'adminLogs.filters.emailContains' | translate"
               />
             </th>
-            <th class="filter-placeholder">-</th>
-            <th class="filter-placeholder">-</th>
+            <th>-</th>
+            <th>-</th>
           </tr>
         </thead>
 
         <tbody>
           @if (!loading && logs.length === 0) {
             <tr>
-              <td colspan="10" class="admin-logs__empty">No logs match current filters.</td>
+              <td colspan="10" class="text-center text-sm text-base-content/70">
+                {{ 'adminLogs.messages.empty' | translate }}
+              </td>
             </tr>
           }
 
@@ -146,8 +176,10 @@
               </td>
               <td>
                 <span
-                  class="level-pill"
-                  [class]="'level-pill level-pill--' + log.level.toLowerCase()"
+                  class="badge badge-sm"
+                  [class.badge-info]="log.level === 'INFO'"
+                  [class.badge-warning]="log.level === 'WARN'"
+                  [class.badge-error]="log.level === 'ERROR'"
                   (contextmenu)="openContextMenu($event, 'level', log.level)"
                 >
                   {{ log.level }}
@@ -155,15 +187,15 @@
               </td>
               <td>
                 <span
-                  class="method-tag"
+                  class="badge badge-outline badge-sm"
                   (contextmenu)="openContextMenu($event, 'httpMethod', log.httpMethod)"
                   >{{ log.httpMethod }}</span
                 >
               </td>
               <td (contextmenu)="openContextMenu($event, 'path', log.path)">
-                <div class="cell-main">{{ log.path }}</div>
+                <div class="font-medium">{{ log.path }}</div>
                 @if (log.message) {
-                  <div class="cell-sub">{{ log.message }}</div>
+                  <div class="text-xs text-base-content/70">{{ log.message }}</div>
                 }
               </td>
               <td (contextmenu)="openContextMenu($event, 'queryString', log.queryString || '')">
@@ -171,34 +203,38 @@
               </td>
               <td>
                 <span
-                  class="status-chip"
+                  class="badge badge-ghost badge-sm"
                   (contextmenu)="openContextMenu($event, 'statusCode', log.statusCode)"
                   >{{ log.statusCode }}</span
                 >
               </td>
               <td>{{ log.durationMs }} ms</td>
               <td (contextmenu)="openContextMenu($event, 'userEmail', log.userEmail || '')">
-                <div class="cell-main">{{ log.userEmail || 'anonymous' }}</div>
-                <div class="cell-sub">{{ log.userRole || '-' }}</div>
+                <div class="font-medium">
+                  {{ log.userEmail || ('adminLogs.table.anonymous' | translate) }}
+                </div>
+                <div class="text-xs text-base-content/70">{{ log.userRole || '-' }}</div>
               </td>
               <td (contextmenu)="openContextMenu($event, 'clientIp', log.clientIp || '')">
                 {{ log.clientIp || '-' }}
               </td>
               <td>
-                <div class="json-actions">
+                <div class="flex gap-1">
                   <button
                     type="button"
-                    class="btn-secondary btn-secondary--tiny"
+                    class="btn btn-outline btn-xs"
                     (click)="openRequestJson(log)"
                   >
-                    Req
+                    <i class="fa-solid fa-file-import text-[11px]"></i>
+                    {{ 'adminLogs.table.req' | translate }}
                   </button>
                   <button
                     type="button"
-                    class="btn-secondary btn-secondary--tiny"
+                    class="btn btn-outline btn-xs"
                     (click)="openResponseJson(log)"
                   >
-                    Res
+                    <i class="fa-solid fa-file-export text-[11px]"></i>
+                    {{ 'adminLogs.table.res' | translate }}
                   </button>
                 </div>
               </td>
@@ -224,32 +260,32 @@
 </section>
 
 @if (jsonModalOpen) {
-  <div class="json-modal-backdrop" (click)="closeJsonModal()">
-    <section class="json-modal panel-card" (click)="$event.stopPropagation()">
-      <header class="json-modal__header">
-        <h3>{{ jsonModalTitle }}</h3>
-        <div class="json-modal__actions">
-          <button
-            type="button"
-            class="btn-secondary btn-secondary--tiny"
-            (click)="copyJsonModalContent()"
-          >
-            Copy JSON
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+    (click)="closeJsonModal()"
+  >
+    <section
+      class="w-full max-w-[980px] rounded-box border border-base-300 bg-base-100 shadow-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="flex items-center justify-between border-b border-base-300 p-4">
+        <h3 class="text-sm font-semibold">{{ jsonModalTitle }}</h3>
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-outline btn-xs" (click)="copyJsonModalContent()">
+            <i class="fa-solid fa-copy text-[11px]"></i>
+            {{ 'adminLogs.json.copy' | translate }}
           </button>
-          <button
-            type="button"
-            class="btn-secondary btn-secondary--tiny"
-            (click)="closeJsonModal()"
-          >
-            Close
+          <button type="button" class="btn btn-outline btn-xs" (click)="closeJsonModal()">
+            <i class="fa-solid fa-xmark text-[11px]"></i>
+            {{ 'common.close' | translate }}
           </button>
         </div>
       </header>
-      <div class="json-modal__content">
+      <div class="max-h-[70vh] overflow-auto bg-base-200 p-4 font-mono text-xs">
         @for (line of jsonModalLines; track line.number) {
-          <div class="json-line">
-            <span class="json-line__number">{{ line.number }}</span>
-            <span class="json-line__text" [innerHTML]="line.html"></span>
+          <div class="grid grid-cols-[3rem_1fr] gap-2">
+            <span class="text-right text-base-content/50">{{ line.number }}</span>
+            <span [innerHTML]="line.html"></span>
           </div>
         }
       </div>
@@ -259,19 +295,31 @@
 
 @if (contextMenuOpen) {
   <div
-    class="context-menu"
+    class="fixed z-50 min-w-[180px] rounded-box border border-base-300 bg-base-100 p-1 shadow-xl"
     [style.left.px]="contextMenuX"
     [style.top.px]="contextMenuY"
     (click)="$event.stopPropagation()"
   >
-    <button type="button" class="context-menu__item" (click)="copyContextValue()">
-      Copy value
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm w-full justify-start"
+      (click)="copyContextValue()"
+    >
+      {{ 'adminLogs.context.copyValue' | translate }}
     </button>
-    <button type="button" class="context-menu__item" (click)="filterByContextValue()">
-      Filter by this value
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm w-full justify-start"
+      (click)="filterByContextValue()"
+    >
+      {{ 'adminLogs.context.filterByValue' | translate }}
     </button>
-    <button type="button" class="context-menu__item" (click)="clearContextColumnFilter()">
-      Clear this filter
+    <button
+      type="button"
+      class="btn btn-ghost btn-sm w-full justify-start"
+      (click)="clearContextColumnFilter()"
+    >
+      {{ 'adminLogs.context.clearFilter' | translate }}
     </button>
   </div>
 }

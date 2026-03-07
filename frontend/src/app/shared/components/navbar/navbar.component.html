@@ -1,103 +1,449 @@
-<header class="panel navbar">
-  <div class="navbar__row">
-    <div class="navbar__brand">
-      <h1>F1 Sets</h1>
-      <p>Race Setup Hub</p>
+<header class="sticky top-0 z-40 border-b border-base-300 bg-base-100/95 backdrop-blur">
+  <div class="navbar mx-auto w-full px-4 md:px-6 lg:px-10">
+    <div class="navbar-start gap-3">
+      <a class="text-base font-semibold tracking-tight" routerLink="/home">F1 Sets</a>
+      <span class="hidden text-sm text-base-content/70 md:inline">{{
+        'nav.tagline' | translate
+      }}</span>
     </div>
 
     @if (user$ | async; as user) {
-      <nav aria-label="Primary" class="navbar__nav">
-        <a class="navbar__link" routerLink="/home" routerLinkActive="is-active"> Home </a>
-        <a
-          [routerLinkActiveOptions]="{exact: true}"
-          class="navbar__link"
-          routerLink="/discovery"
-          routerLinkActive="is-active"
-        >
-          Track Catalog
-        </a>
-        <a
-          [routerLinkActiveOptions]="{exact: false}"
-          class="navbar__link"
-          routerLink="/setups"
-          routerLinkActive="is-active"
-        >
-          Setups
-        </a>
-        @if (user.role === 'ADMIN') {
-          <div #adminMenu class="admin-menu">
-            <button
-              (click)="toggleAdminDropdown($event)"
-              class="admin-menu__trigger navbar__link"
-              type="button"
+      <div class="navbar-center hidden lg:flex">
+        <ul class="menu menu-horizontal gap-1 px-1 text-sm">
+          <li>
+            <a routerLink="/home" routerLinkActive="active"
+              ><i class="fa-solid fa-house mr-1 text-[11px]"></i>{{ 'nav.home' | translate }}</a
             >
-              Admin
-            </button>
-            @if (adminDropdownOpen) {
-              <div (click)="onMenuClick($event)" class="admin-menu__dropdown panel-card">
-                <a
-                  (click)="closeAdminDropdown()"
-                  class="admin-menu__item"
-                  routerLink="/admin/tracks"
-                  >Admin tracks</a
-                >
-                <a
-                  (click)="closeAdminDropdown()"
-                  class="admin-menu__item"
-                  routerLink="/admin/setup-fields"
-                  >Admin setups</a
-                >
-                <a (click)="closeAdminDropdown()" class="admin-menu__item" routerLink="/admin/logs"
-                  >Admin logs</a
-                >
+          </li>
+          <li>
+            <a routerLink="/discovery" routerLinkActive="active"
+              ><i class="fa-solid fa-compass mr-1 text-[11px]"></i
+              >{{ 'nav.trackCatalog' | translate }}</a
+            >
+          </li>
+          <li>
+            <a routerLink="/setups" routerLinkActive="active"
+              ><i class="fa-solid fa-screwdriver-wrench mr-1 text-[11px]"></i
+              >{{ 'nav.setups' | translate }}</a
+            >
+          </li>
+          <li>
+            <a routerLink="/ai-difficulty" routerLinkActive="active"
+              ><i class="fa-solid fa-chart-line mr-1 text-[11px]"></i
+              >{{ 'nav.aiDifficulty' | translate }}</a
+            >
+          </li>
+        </ul>
+      </div>
+
+      <div class="navbar-end gap-1">
+        <div class="dropdown dropdown-end">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm"
+            [attr.aria-label]="'nav.changeLanguage' | translate"
+          >
+            @if (currentLanguage$ | async; as currentLanguage) {
+              {{ currentLanguage.toUpperCase() }}
+            }
+          </button>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content z-[30] mt-1 w-32 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            @if (currentLanguage$ | async; as currentLanguage) {
+              @for (language of languages; track language) {
+                <li>
+                  <button
+                    type="button"
+                    [class.active]="currentLanguage === language"
+                    (click)="setLanguage(language)"
+                  >
+                    {{ 'lang.' + language | translate }}
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        </div>
+
+        <div class="dropdown dropdown-end">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm btn-square"
+            [attr.aria-label]="'nav.changeTheme' | translate"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="h-5 w-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2.25a.75.75 0 0 1 .75.75v1.345a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Zm0 16.905a.75.75 0 0 1 .75.75v1.345a.75.75 0 0 1-1.5 0V19.905a.75.75 0 0 1 .75-.75Zm9.75-7.155a.75.75 0 0 1-.75.75h-1.345a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75Zm-16.905 0a.75.75 0 0 1-.75.75H2.75a.75.75 0 0 1 0-1.5h1.345a.75.75 0 0 1 .75.75Zm12.582-6.582a.75.75 0 0 1 1.061 0l.95.95a.75.75 0 0 1-1.06 1.061l-.951-.95a.75.75 0 0 1 0-1.061ZM5.562 17.377a.75.75 0 0 1 1.06 0l.951.95a.75.75 0 1 1-1.06 1.061l-.951-.95a.75.75 0 0 1 0-1.061Zm12.816 1.061a.75.75 0 0 1 0-1.06l.95-.95a.75.75 0 1 1 1.061 1.06l-.95.951a.75.75 0 0 1-1.061 0ZM6.623 6.622a.75.75 0 0 1 0-1.06l.95-.95a.75.75 0 1 1 1.061 1.06l-.95.951a.75.75 0 0 1-1.061 0ZM12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <div
+            tabindex="0"
+            class="dropdown-content z-[30] mt-1 max-w-[92vw] rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            @if (currentTheme$ | async; as currentTheme) {
+              <div class="flex max-h-80 w-56 flex-col gap-1 overflow-y-auto">
+                @for (theme of themes; track theme) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm h-9 min-h-9 w-full justify-start gap-2"
+                    [class.btn-active]="currentTheme === theme"
+                    (click)="setTheme(theme)"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full border border-base-content/20"
+                      [style.backgroundColor]="getThemeDominantColor(theme)"
+                    ></span>
+                    <span>{{ theme }}</span>
+                  </button>
+                }
               </div>
             }
           </div>
-        }
-        <div #accountMenu class="account-menu">
-          <button (click)="toggleDropdown($event)" class="account-menu__trigger" type="button">
-            @if (avatarUrl) {
-              <img [src]="avatarUrl" alt="Profile avatar" class="account-menu__avatar" />
-            } @else {
-              <span class="account-menu__avatar account-menu__avatar--fallback">
-                {{ user.displayName.charAt(0).toUpperCase() }}
-              </span>
+        </div>
+
+        <div class="dropdown dropdown-end lg:hidden">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm btn-square"
+            [attr.aria-label]="'nav.openMenu' | translate"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              class="h-5 w-5 fill-current"
+            >
+              <path
+                d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z"
+              />
+            </svg>
+          </button>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content z-[35] mt-1 w-64 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            <li>
+              <a routerLink="/home"
+                ><i class="fa-solid fa-house mr-1 text-[11px]"></i>{{ 'nav.home' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/discovery"
+                ><i class="fa-solid fa-compass mr-1 text-[11px]"></i
+                >{{ 'nav.trackCatalog' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/setups"
+                ><i class="fa-solid fa-screwdriver-wrench mr-1 text-[11px]"></i
+                >{{ 'nav.setups' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/ai-difficulty"
+                ><i class="fa-solid fa-chart-line mr-1 text-[11px]"></i
+                >{{ 'nav.aiDifficulty' | translate }}</a
+              >
+            </li>
+            @if (user.role === 'ADMIN') {
+              <li class="menu-title">
+                <span>{{ 'nav.admin' | translate }}</span>
+              </li>
+              <li>
+                <a routerLink="/admin/tracks"
+                  ><i class="fa-solid fa-road mr-1 text-[11px]"></i
+                  >{{ 'nav.adminTracks' | translate }}</a
+                >
+              </li>
+              <li>
+                <a routerLink="/admin/setup-fields"
+                  ><i class="fa-solid fa-list-check mr-1 text-[11px]"></i
+                  >{{ 'nav.adminSetups' | translate }}</a
+                >
+              </li>
+              <li>
+                <a routerLink="/admin/logs"
+                  ><i class="fa-solid fa-file-lines mr-1 text-[11px]"></i
+                  >{{ 'nav.adminLogs' | translate }}</a
+                >
+              </li>
             }
-            <span class="account-menu__name">{{ user.displayName }}</span>
+            <li class="menu-title">
+              <span>{{ 'nav.account' | translate }}</span>
+            </li>
+            <li>
+              <a routerLink="/profile"
+                ><i class="fa-solid fa-user mr-1 text-[11px]"></i
+                >{{ 'nav.profilePage' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/profile/settings"
+                ><i class="fa-solid fa-user-gear mr-1 text-[11px]"></i
+                >{{ 'nav.profileSettings' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/auth/change-password"
+                ><i class="fa-solid fa-key mr-1 text-[11px]"></i
+                >{{ 'nav.changePassword' | translate }}</a
+              >
+            </li>
+            <li>
+              <button type="button" (click)="logout()">
+                <i class="fa-solid fa-right-from-bracket mr-1 text-[11px]"></i
+                >{{ 'nav.logout' | translate }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        @if (user.role === 'ADMIN') {
+          <div #adminMenu class="dropdown dropdown-end hidden lg:block">
+            <button
+              class="btn btn-ghost btn-sm"
+              type="button"
+              (click)="toggleAdminDropdown($event)"
+            >
+              <i class="fa-solid fa-shield-halved mr-1 text-[11px]"></i>
+              {{ 'nav.admin' | translate }}
+            </button>
+            @if (adminDropdownOpen) {
+              <ul
+                class="menu dropdown-content z-[20] mt-1 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+                (click)="onMenuClick($event)"
+              >
+                <li>
+                  <a routerLink="/admin/tracks" (click)="closeAdminDropdown()"
+                    ><i class="fa-solid fa-road mr-1 text-[11px]"></i
+                    >{{ 'nav.adminTracks' | translate }}</a
+                  >
+                </li>
+                <li>
+                  <a routerLink="/admin/setup-fields" (click)="closeAdminDropdown()"
+                    ><i class="fa-solid fa-list-check mr-1 text-[11px]"></i
+                    >{{ 'nav.adminSetups' | translate }}</a
+                  >
+                </li>
+                <li>
+                  <a routerLink="/admin/logs" (click)="closeAdminDropdown()"
+                    ><i class="fa-solid fa-file-lines mr-1 text-[11px]"></i
+                    >{{ 'nav.adminLogs' | translate }}</a
+                  >
+                </li>
+              </ul>
+            }
+          </div>
+        }
+
+        <div #accountMenu class="dropdown dropdown-end hidden lg:block">
+          <button
+            class="btn btn-ghost btn-sm gap-2 px-2"
+            type="button"
+            (click)="toggleDropdown($event)"
+          >
+            @if (avatarUrl) {
+              <img
+                [src]="avatarUrl"
+                [alt]="'nav.profileAvatar' | translate"
+                class="h-8 w-8 rounded-full object-cover"
+              />
+            } @else {
+              <div class="avatar placeholder">
+                <div class="h-8 w-8 rounded-full bg-base-300 text-xs text-base-content">
+                  <span>{{ user.displayName.charAt(0).toUpperCase() }}</span>
+                </div>
+              </div>
+            }
+            <span class="hidden text-sm md:inline">{{ user.displayName }}</span>
           </button>
           @if (dropdownOpen) {
-            <div (click)="onMenuClick($event)" class="account-menu__dropdown panel-card">
-              <a (click)="closeDropdown()" class="account-menu__item" routerLink="/profile"
-                >Profile Page</a
-              >
-              <a (click)="closeDropdown()" class="account-menu__item" routerLink="/profile/settings"
-                >Profile Settings</a
-              >
-              <a
-                (click)="closeDropdown()"
-                class="account-menu__item"
-                routerLink="/auth/change-password"
-                >Change Password</a
-              >
-              <button
-                (click)="logout()"
-                class="account-menu__item account-menu__item--danger"
-                type="button"
-              >
-                Logout
-              </button>
-            </div>
+            <ul
+              class="menu dropdown-content z-[20] mt-1 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+              (click)="onMenuClick($event)"
+            >
+              <li>
+                <a routerLink="/profile" (click)="closeDropdown()"
+                  ><i class="fa-solid fa-user mr-1 text-[11px]"></i
+                  >{{ 'nav.profilePage' | translate }}</a
+                >
+              </li>
+              <li>
+                <a routerLink="/profile/settings" (click)="closeDropdown()"
+                  ><i class="fa-solid fa-user-gear mr-1 text-[11px]"></i
+                  >{{ 'nav.profileSettings' | translate }}</a
+                >
+              </li>
+              <li>
+                <a routerLink="/auth/change-password" (click)="closeDropdown()"
+                  ><i class="fa-solid fa-key mr-1 text-[11px]"></i
+                  >{{ 'nav.changePassword' | translate }}</a
+                >
+              </li>
+              <li>
+                <button type="button" (click)="logout()">
+                  <i class="fa-solid fa-right-from-bracket mr-1 text-[11px]"></i
+                  >{{ 'nav.logout' | translate }}
+                </button>
+              </li>
+            </ul>
           }
         </div>
-      </nav>
+      </div>
     } @else {
-      <nav aria-label="Primary" class="navbar__nav">
-        <a class="navbar__link" routerLink="/home" routerLinkActive="is-active"> Home </a>
-        <a class="navbar__link" routerLink="/auth/login" routerLinkActive="is-active"> Login </a>
-        <a class="navbar__link" routerLink="/auth/register" routerLinkActive="is-active">
-          Register
-        </a>
-      </nav>
+      <div class="navbar-end gap-1">
+        <div class="dropdown dropdown-end">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm"
+            [attr.aria-label]="'nav.changeLanguage' | translate"
+          >
+            @if (currentLanguage$ | async; as currentLanguage) {
+              {{ currentLanguage.toUpperCase() }}
+            }
+          </button>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content z-[30] mt-1 w-32 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            @if (currentLanguage$ | async; as currentLanguage) {
+              @for (language of languages; track language) {
+                <li>
+                  <button
+                    type="button"
+                    [class.active]="currentLanguage === language"
+                    (click)="setLanguage(language)"
+                  >
+                    {{ 'lang.' + language | translate }}
+                  </button>
+                </li>
+              }
+            }
+          </ul>
+        </div>
+
+        <div class="dropdown dropdown-end">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm btn-square"
+            [attr.aria-label]="'nav.changeTheme' | translate"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="h-5 w-5"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2.25a.75.75 0 0 1 .75.75v1.345a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Zm0 16.905a.75.75 0 0 1 .75.75v1.345a.75.75 0 0 1-1.5 0V19.905a.75.75 0 0 1 .75-.75Zm9.75-7.155a.75.75 0 0 1-.75.75h-1.345a.75.75 0 0 1 0-1.5H21a.75.75 0 0 1 .75.75Zm-16.905 0a.75.75 0 0 1-.75.75H2.75a.75.75 0 0 1 0-1.5h1.345a.75.75 0 0 1 .75.75Zm12.582-6.582a.75.75 0 0 1 1.061 0l.95.95a.75.75 0 0 1-1.06 1.061l-.951-.95a.75.75 0 0 1 0-1.061ZM5.562 17.377a.75.75 0 0 1 1.06 0l.951.95a.75.75 0 1 1-1.06 1.061l-.951-.95a.75.75 0 0 1 0-1.061Zm12.816 1.061a.75.75 0 0 1 0-1.06l.95-.95a.75.75 0 1 1 1.061 1.06l-.95.951a.75.75 0 0 1-1.061 0ZM6.623 6.622a.75.75 0 0 1 0-1.06l.95-.95a.75.75 0 1 1 1.061 1.06l-.95.951a.75.75 0 0 1-1.061 0ZM12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <div
+            tabindex="0"
+            class="dropdown-content z-[30] mt-1 max-w-[92vw] rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            @if (currentTheme$ | async; as currentTheme) {
+              <div class="flex max-h-80 w-56 flex-col gap-1 overflow-y-auto">
+                @for (theme of themes; track theme) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm h-9 min-h-9 w-full justify-start gap-2"
+                    [class.btn-active]="currentTheme === theme"
+                    (click)="setTheme(theme)"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full border border-base-content/20"
+                      [style.backgroundColor]="getThemeDominantColor(theme)"
+                    ></span>
+                    <span>{{ theme }}</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="dropdown dropdown-end lg:hidden">
+          <button
+            type="button"
+            tabindex="0"
+            class="btn btn-ghost btn-sm btn-square"
+            [attr.aria-label]="'nav.openMenu' | translate"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              class="h-5 w-5 fill-current"
+            >
+              <path
+                d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm0 5.25a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z"
+              />
+            </svg>
+          </button>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content z-[35] mt-1 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+          >
+            <li>
+              <a routerLink="/home"
+                ><i class="fa-solid fa-house mr-1 text-[11px]"></i>{{ 'nav.home' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/ai-difficulty"
+                ><i class="fa-solid fa-chart-line mr-1 text-[11px]"></i
+                >{{ 'nav.aiDifficulty' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/auth/login"
+                ><i class="fa-solid fa-right-to-bracket mr-1 text-[11px]"></i
+                >{{ 'nav.login' | translate }}</a
+              >
+            </li>
+            <li>
+              <a routerLink="/auth/register"
+                ><i class="fa-solid fa-user-plus mr-1 text-[11px]"></i
+                >{{ 'nav.register' | translate }}</a
+              >
+            </li>
+          </ul>
+        </div>
+
+        <div class="hidden items-center gap-1 lg:flex">
+          <a class="btn btn-ghost btn-sm" routerLink="/home" routerLinkActive="btn-active"
+            ><i class="fa-solid fa-house text-[11px]"></i>{{ 'nav.home' | translate }}</a
+          >
+          <a class="btn btn-ghost btn-sm" routerLink="/ai-difficulty" routerLinkActive="btn-active"
+            ><i class="fa-solid fa-chart-line text-[11px]"></i>
+            {{ 'nav.aiDifficulty' | translate }}
+          </a>
+          <a class="btn btn-ghost btn-sm" routerLink="/auth/login" routerLinkActive="btn-active"
+            ><i class="fa-solid fa-right-to-bracket text-[11px]"></i
+            >{{ 'nav.login' | translate }}</a
+          >
+          <a class="btn btn-primary btn-sm" routerLink="/auth/register"
+            ><i class="fa-solid fa-user-plus text-[11px]"></i>{{ 'nav.register' | translate }}</a
+          >
+        </div>
+      </div>
     }
   </div>
 </header>

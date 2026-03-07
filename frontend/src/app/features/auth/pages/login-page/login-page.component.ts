@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {Router, RouterLink} from '@angular/router';
 import {AuthService} from '../../data-access/auth.service';
 
@@ -14,7 +15,7 @@ type LoginFormGroup = FormGroup<{
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
 })
 export class LoginPageComponent {
   readonly form: LoginFormGroup = new FormGroup({
@@ -34,6 +35,7 @@ export class LoginPageComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly translateService: TranslateService,
   ) {}
 
   submit(): void {
@@ -65,8 +67,8 @@ export class LoginPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Login failed. Please verify your credentials.';
+      return error.error?.message ?? this.translateService.instant('auth.messages.loginFailed');
     }
-    return 'Login failed. Please try again.';
+    return this.translateService.instant('auth.messages.genericFailure');
   }
 }

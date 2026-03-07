@@ -1,129 +1,156 @@
-<section class="admin-track app-page">
-  <header class="admin-track__titlebar app-page__header">
-    <div>
-      <h2 class="app-page__title">Admin Tracks</h2>
-      <p class="admin-track__muted app-page__subtitle">
-        ERP grid mode with inline filters, sorting, and modal-based editing.
-      </p>
-    </div>
-    <div class="admin-track__title-actions app-page__actions">
-      <label class="field-group field-group--inline">
-        <span>Game</span>
-        <select class="field" [formControl]="gameControl">
-          @for (option of gameOptions; track option.code) {
-            <option [value]="option.code">{{ option.label }}</option>
-          }
-        </select>
-      </label>
-      <button type="button" class="btn-primary" (click)="openCreateModal()">Create Track</button>
+<section class="flex flex-col gap-4">
+  <header class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <h2 class="flex items-center gap-2 text-xl font-semibold">
+          <i class="fa-solid fa-road text-sm text-base-content/70"></i>
+          {{ 'adminTrack.title' | translate }}
+        </h2>
+        <p class="mt-1 text-sm text-base-content/70">{{ 'adminTrack.subtitle' | translate }}</p>
+      </div>
+      <div class="flex flex-wrap items-end gap-2">
+        <label class="flex flex-col gap-1">
+          <span class="text-xs font-medium text-base-content/80">{{
+            'adminTrack.filters.game' | translate
+          }}</span>
+          <select
+            class="select select-bordered select-sm min-w-[180px]"
+            [formControl]="gameControl"
+          >
+            @for (option of gameOptions; track option.code) {
+              <option [value]="option.code">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+        <button type="button" class="btn btn-primary btn-sm" (click)="openCreateModal()">
+          <i class="fa-solid fa-plus text-xs"></i>
+          {{ 'adminTrack.actions.createTrack' | translate }}
+        </button>
+      </div>
     </div>
   </header>
 
   @if (errorMessage) {
-    <article class="state-card state-card--error">{{ errorMessage }}</article>
+    <article class="alert alert-error text-sm">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+    </article>
   }
 
-  <section class="panel-card p-0 admin-track__grid-shell">
-    <div class="admin-track__table-wrap">
-      <table class="admin-track__table" [formGroup]="filters">
-        <thead>
-          <tr class="head-row head-row--labels">
+  <section class="overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-sm">
+    <div class="max-h-[62vh] overflow-auto">
+      <table class="table table-zebra" [formGroup]="filters">
+        <thead class="sticky top-0 z-20">
+          <tr class="bg-base-100">
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('slug')">
-                Slug
-                <span class="sort-mark">{{ sortMark('slug') }}</span>
+              <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSort('slug')">
+                {{ 'adminTrack.table.slug' | translate }} {{ sortMark('slug') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('grandPrixName')">
-                Grand Prix
-                <span class="sort-mark">{{ sortMark('grandPrixName') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('grandPrixName')"
+              >
+                {{ 'adminTrack.table.grandPrix' | translate }} {{ sortMark('grandPrixName') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('circuitName')">
-                Circuit
-                <span class="sort-mark">{{ sortMark('circuitName') }}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs px-0"
+                (click)="setSort('circuitName')"
+              >
+                {{ 'adminTrack.table.circuit' | translate }} {{ sortMark('circuitName') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('lengthKm')">
-                Length (km)
-                <span class="sort-mark">{{ sortMark('lengthKm') }}</span>
+              <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSort('lengthKm')">
+                {{ 'adminTrack.table.length' | translate }} {{ sortMark('lengthKm') }}
               </button>
             </th>
             <th>
-              <button type="button" class="sort-btn" (click)="setSort('hasImage')">
-                Image
-                <span class="sort-mark">{{ sortMark('hasImage') }}</span>
+              <button type="button" class="btn btn-ghost btn-xs px-0" (click)="setSort('hasImage')">
+                {{ 'adminTrack.table.image' | translate }} {{ sortMark('hasImage') }}
               </button>
             </th>
-            <th>Actions</th>
+            <th>{{ 'adminTrack.table.actions' | translate }}</th>
           </tr>
-          <tr class="head-row head-row--filters">
+          <tr class="bg-base-100">
             <th>
               <input
-                class="filter-control"
+                class="input input-bordered input-sm w-full"
                 formControlName="query"
-                placeholder="Search slug / names"
+                [placeholder]="'adminTrack.filters.searchPlaceholder' | translate"
               />
             </th>
-            <th class="filter-placeholder">-</th>
-            <th class="filter-placeholder">-</th>
-            <th class="filter-placeholder">-</th>
+            <th>-</th>
+            <th>-</th>
+            <th>-</th>
             <th>
               <app-multi-autocomplete-filter
                 [dense]="true"
-                placeholder="Image"
+                [placeholder]="'adminTrack.filters.image' | translate"
                 [options]="hasImageFilterOptions"
                 [selectedValues]="selectedHasImageFilters"
                 (selectedValuesChange)="onHasImageFiltersChange($event)"
               />
             </th>
-            <th class="filter-placeholder">-</th>
+            <th>-</th>
           </tr>
         </thead>
         <tbody>
           @if (loading) {
             <tr>
-              <td colspan="6" class="admin-track__empty">Loading tracks...</td>
+              <td colspan="6" class="text-center text-sm text-base-content/70">
+                {{ 'adminTrack.messages.loading' | translate }}
+              </td>
             </tr>
           } @else if (visibleTracks.length === 0) {
             <tr>
-              <td colspan="6" class="admin-track__empty">No tracks found for current filters.</td>
+              <td colspan="6" class="text-center text-sm text-base-content/70">
+                {{ 'adminTrack.messages.empty' | translate }}
+              </td>
             </tr>
           } @else {
             @for (track of visibleTracks; track track.id) {
               <tr>
                 <td>
-                  <span class="mono">{{ track.slug }}</span>
+                  <span class="font-mono text-xs">{{ track.slug }}</span>
                 </td>
                 <td>{{ track.grandPrixName || '-' }}</td>
                 <td>{{ track.circuitName || '-' }}</td>
                 <td>{{ track.lengthKm ?? '-' }}</td>
                 <td>
                   @if (track.trackImageUrl) {
-                    <span class="status-chip status-chip--yes">Available</span>
+                    <span class="badge badge-success badge-sm">{{
+                      'adminTrack.image.available' | translate
+                    }}</span>
                   } @else {
-                    <span class="status-chip status-chip--no">Missing</span>
+                    <span class="badge badge-error badge-sm">{{
+                      'adminTrack.image.missing' | translate
+                    }}</span>
                   }
                 </td>
                 <td>
-                  <div class="row-actions">
+                  <div class="flex gap-1">
                     <button
                       type="button"
-                      class="btn-secondary btn-secondary--tiny"
+                      class="btn btn-outline btn-xs"
                       (click)="openEditModal(track)"
                     >
-                      Edit
+                      <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                      {{ 'common.edit' | translate }}
                     </button>
                     <button
                       type="button"
-                      class="btn-secondary btn-secondary--tiny"
+                      class="btn btn-outline btn-xs"
                       [disabled]="deleting"
                       (click)="deleteTrack(track)"
                     >
-                      Delete
+                      <i class="fa-solid fa-trash text-[11px]"></i>
+                      {{ 'common.delete' | translate }}
                     </button>
                   </div>
                 </td>
@@ -137,39 +164,59 @@
 </section>
 
 @if (createModalOpen) {
-  <div class="modal-backdrop" (click)="closeCreateModal()">
-    <section class="modal panel-card" (click)="$event.stopPropagation()">
-      <header class="modal__header">
-        <h3>Create Track</h3>
-        <button
-          type="button"
-          class="btn-secondary btn-secondary--tiny"
-          (click)="closeCreateModal()"
-        >
-          Close
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+    (click)="closeCreateModal()"
+  >
+    <section
+      class="w-full max-w-[640px] max-h-[90vh] overflow-y-auto rounded-box border border-base-300 bg-base-100 p-5 shadow-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="mb-4 flex items-center justify-between">
+        <h3 class="flex items-center gap-2 text-lg font-semibold">
+          <i class="fa-solid fa-plus text-sm text-base-content/70"></i>
+          {{ 'adminTrack.createModal.title' | translate }}
+        </h3>
+        <button type="button" class="btn btn-outline btn-xs" (click)="closeCreateModal()">
+          <i class="fa-solid fa-xmark text-[11px]"></i>
+          {{ 'common.close' | translate }}
         </button>
       </header>
-      <form class="modal__form" [formGroup]="createForm">
-        <label class="field-group">
-          <span>Slug</span>
-          <input class="field" formControlName="slug" />
-        </label>
-        <label class="field-group">
-          <span>Grand Prix Name</span>
-          <input class="field" formControlName="grandPrixName" />
-        </label>
-        <label class="field-group">
-          <span>Circuit Name</span>
-          <input class="field" formControlName="circuitName" />
-        </label>
-        <label class="field-group">
-          <span>Length (km)</span>
-          <input class="field" formControlName="lengthKm" />
-        </label>
+      <form class="flex flex-col gap-3" [formGroup]="createForm">
+        <label class="flex flex-col gap-1"
+          ><span class="text-xs text-base-content/80">{{
+            'adminTrack.table.slug' | translate
+          }}</span
+          ><input class="input input-bordered w-full" formControlName="slug"
+        /></label>
+        <label class="flex flex-col gap-1"
+          ><span class="text-xs text-base-content/80">{{
+            'adminTrack.table.grandPrix' | translate
+          }}</span
+          ><input class="input input-bordered w-full" formControlName="grandPrixName"
+        /></label>
+        <label class="flex flex-col gap-1"
+          ><span class="text-xs text-base-content/80">{{
+            'adminTrack.table.circuit' | translate
+          }}</span
+          ><input class="input input-bordered w-full" formControlName="circuitName"
+        /></label>
+        <label class="flex flex-col gap-1"
+          ><span class="text-xs text-base-content/80">{{
+            'adminTrack.table.lengthKm' | translate
+          }}</span
+          ><input class="input input-bordered w-full" formControlName="lengthKm"
+        /></label>
       </form>
-      <footer class="modal__actions">
-        <button type="button" class="btn-primary" [disabled]="creating" (click)="createTrack()">
-          {{ creating ? 'Creating...' : 'Create' }}
+      <footer class="mt-4 flex justify-end">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          [disabled]="creating"
+          (click)="createTrack()"
+        >
+          <i class="fa-solid fa-plus text-[11px]"></i>
+          {{ creating ? ('common.creating' | translate) : ('common.create' | translate) }}
         </button>
       </footer>
     </section>
@@ -177,63 +224,101 @@
 }
 
 @if (editModalOpen && editingTrack; as track) {
-  <div class="modal-backdrop" (click)="closeEditModal()">
-    <section class="modal panel-card" (click)="$event.stopPropagation()">
-      <header class="modal__header">
-        <h3>Edit {{ track.slug }}</h3>
-        <button type="button" class="btn-secondary btn-secondary--tiny" (click)="closeEditModal()">
-          Close
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+    (click)="closeEditModal()"
+  >
+    <section
+      class="w-full max-w-[960px] max-h-[90vh] overflow-y-auto rounded-box border border-base-300 bg-base-100 p-5 shadow-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="mb-4 flex items-center justify-between">
+        <h3 class="flex items-center gap-2 text-lg font-semibold">
+          <i class="fa-solid fa-pen-to-square text-sm text-base-content/70"></i>
+          {{ 'adminTrack.editModal.title' | translate: {slug: track.slug} }}
+        </h3>
+        <button type="button" class="btn btn-outline btn-xs" (click)="closeEditModal()">
+          <i class="fa-solid fa-xmark text-[11px]"></i>
+          {{ 'common.close' | translate }}
         </button>
       </header>
 
-      <div class="modal__content-grid">
-        <form class="modal__form" [formGroup]="editForm">
-          <label class="field-group">
-            <span>Slug</span>
-            <input class="field" formControlName="slug" />
-          </label>
-          <label class="field-group">
-            <span>Grand Prix Name</span>
-            <input class="field" formControlName="grandPrixName" />
-          </label>
-          <label class="field-group">
-            <span>Circuit Name</span>
-            <input class="field" formControlName="circuitName" />
-          </label>
-          <label class="field-group">
-            <span>Length (km)</span>
-            <input class="field" formControlName="lengthKm" />
-          </label>
+      <div class="flex flex-col gap-4 lg:flex-row">
+        <form class="flex flex-1 flex-col gap-3" [formGroup]="editForm">
+          <label class="flex flex-col gap-1"
+            ><span class="text-xs text-base-content/80">{{
+              'adminTrack.table.slug' | translate
+            }}</span
+            ><input class="input input-bordered w-full" formControlName="slug"
+          /></label>
+          <label class="flex flex-col gap-1"
+            ><span class="text-xs text-base-content/80">{{
+              'adminTrack.table.grandPrix' | translate
+            }}</span
+            ><input class="input input-bordered w-full" formControlName="grandPrixName"
+          /></label>
+          <label class="flex flex-col gap-1"
+            ><span class="text-xs text-base-content/80">{{
+              'adminTrack.table.circuit' | translate
+            }}</span
+            ><input class="input input-bordered w-full" formControlName="circuitName"
+          /></label>
+          <label class="flex flex-col gap-1"
+            ><span class="text-xs text-base-content/80">{{
+              'adminTrack.table.lengthKm' | translate
+            }}</span
+            ><input class="input input-bordered w-full" formControlName="lengthKm"
+          /></label>
         </form>
 
-        <section class="photo-panel">
-          <h4>Track Photo</h4>
-          <div class="photo-preview">
+        <section class="rounded-box border border-base-300 bg-base-200 p-3">
+          <h4 class="text-sm font-medium">{{ 'adminTrack.editModal.trackPhoto' | translate }}</h4>
+          <div
+            class="mt-3 h-[180px] overflow-hidden rounded-box border border-base-300 bg-base-100"
+          >
             @if (track.trackImageUrl) {
-              <img [src]="track.trackImageUrl" [alt]="track.slug" />
+              <img
+                [src]="track.trackImageUrl"
+                [alt]="track.slug"
+                class="h-full w-full object-contain"
+              />
             } @else {
-              <p>No image uploaded</p>
+              <p class="flex h-full items-center justify-center text-sm text-base-content/70">
+                {{ 'adminTrack.editModal.noImage' | translate }}
+              </p>
             }
           </div>
           <input
+            class="file-input file-input-bordered file-input-sm mt-3 w-full"
             type="file"
             accept="image/png,image/jpeg,image/webp"
             (change)="onFileSelected($event)"
           />
           <button
             type="button"
-            class="btn-secondary"
+            class="btn btn-outline btn-sm mt-2 w-full"
             [disabled]="uploading || !selectedFile"
             (click)="uploadPhoto()"
           >
-            {{ uploading ? 'Uploading...' : 'Upload photo' }}
+            <i class="fa-solid fa-image text-[11px]"></i>
+            {{
+              uploading
+                ? ('common.uploading' | translate)
+                : ('adminTrack.actions.uploadPhoto' | translate)
+            }}
           </button>
         </section>
       </div>
 
-      <footer class="modal__actions">
-        <button type="button" class="btn-primary" [disabled]="saving" (click)="saveTrack()">
-          {{ saving ? 'Saving...' : 'Save changes' }}
+      <footer class="mt-4 flex justify-end">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm"
+          [disabled]="saving"
+          (click)="saveTrack()"
+        >
+          <i class="fa-solid fa-floppy-disk text-[11px]"></i>
+          {{ saving ? ('common.saving' | translate) : ('common.saveChanges' | translate) }}
         </button>
       </footer>
     </section>

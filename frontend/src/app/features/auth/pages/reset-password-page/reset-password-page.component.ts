@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {AuthService} from '../../data-access/auth.service';
 
@@ -14,7 +15,7 @@ type ResetPasswordFormGroup = FormGroup<{
   templateUrl: './reset-password-page.component.html',
   styleUrl: './reset-password-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
 })
 export class ResetPasswordPageComponent {
   readonly form: ResetPasswordFormGroup;
@@ -27,6 +28,7 @@ export class ResetPasswordPageComponent {
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly translateService: TranslateService,
   ) {
     const tokenFromQuery = this.route.snapshot.queryParamMap.get('token') ?? '';
     this.form = new FormGroup({
@@ -74,8 +76,8 @@ export class ResetPasswordPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Reset failed. The reset token may be invalid or expired.';
+      return error.error?.message ?? this.translateService.instant('auth.messages.resetFailed');
     }
-    return 'Reset failed. Please request a new reset email.';
+    return this.translateService.instant('auth.messages.resetRetry');
   }
 }

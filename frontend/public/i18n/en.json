@@ -1,0 +1,647 @@
+{
+  "lang": {
+    "en": "English",
+    "fr": "French"
+  },
+  "common": {
+    "all": "All",
+    "calculate": "Calculate",
+    "calculating": "Calculating...",
+    "clear": "Clear",
+    "close": "Close",
+    "create": "Create",
+    "creating": "Creating...",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "no": "No",
+    "notAvailable": "N/A",
+    "publishing": "Publishing...",
+    "refresh": "Refresh",
+    "remove": "Remove",
+    "requestFailed": "Request failed.",
+    "requestFailedWithStatus": "Request failed (HTTP {{status}}).",
+    "saveChanges": "Save changes",
+    "saving": "Saving...",
+    "selectOption": "Select an option",
+    "uploading": "Uploading...",
+    "yes": "Yes"
+  },
+  "toast": {
+    "titles": {
+      "success": "Success",
+      "error": "Error",
+      "info": "Info"
+    }
+  },
+  "nav": {
+    "tagline": "Setup hub for F1 drivers",
+    "home": "Home",
+    "trackCatalog": "Track catalog",
+    "setups": "Setups",
+    "aiDifficulty": "AI Difficulty",
+    "admin": "Admin",
+    "adminTracks": "Tracks",
+    "adminSetups": "Setup fields",
+    "adminLogs": "Logs",
+    "account": "Account",
+    "profilePage": "Profile",
+    "profileSettings": "Profile settings",
+    "changePassword": "Change password",
+    "logout": "Logout",
+    "login": "Sign in",
+    "register": "Register",
+    "changeLanguage": "Change language",
+    "changeTheme": "Change theme",
+    "openMenu": "Open menu",
+    "profileAvatar": "Profile avatar"
+  },
+  "home": {
+    "title": "F1 Sets",
+    "subtitle": "Share setups, compare performance, and tune your race pace.",
+    "roles": {
+      "guest": "Guest",
+      "user": "Driver workspace",
+      "admin": "Admin workspace"
+    },
+    "highlights": {
+      "tracksIndexed": "Tracks indexed",
+      "setupsShared": "Setups shared",
+      "communityDrivers": "Community drivers"
+    },
+    "features": {
+      "discovery": {
+        "title": "Track discovery",
+        "description": "Browse all tracks and instantly see available data."
+      },
+      "data": {
+        "title": "Setup data",
+        "description": "Publish, compare, and reuse setup values with clear structure."
+      },
+      "raceDay": {
+        "title": "Race-day AI help",
+        "description": "Estimate recommended AI difficulty from your lap time."
+      }
+    },
+    "onboarding": {
+      "title": "Onboarding checklist",
+      "progress": "{{done}} / {{total}} completed",
+      "dismiss": "Hide",
+      "items": {
+        "profile": {
+          "title": "Complete profile settings",
+          "description": "Set your public profile details and upload your avatar."
+        },
+        "discover": {
+          "title": "Review track catalog",
+          "description": "Browse available tracks and data coverage."
+        },
+        "setup": {
+          "title": "Publish first setup",
+          "description": "Create and share at least one setup in the catalog."
+        },
+        "ai": {
+          "title": "Run AI difficulty estimate",
+          "description": "Calculate your recommended AI level from lap time."
+        }
+      }
+    },
+    "quickActions": {
+      "discovery": {
+        "title": "Open discovery",
+        "description": "Go to the track catalog and inspect track data."
+      },
+      "setups": {
+        "title": "Manage setups",
+        "description": "Open setup workspace and manage your setup library."
+      },
+      "ai": {
+        "title": "AI difficulty tool",
+        "description": "Estimate AI level for a given lap time and track."
+      },
+      "logs": {
+        "title": "Review API logs",
+        "description": "Inspect backend request/response logs."
+      },
+      "trackAdmin": {
+        "title": "Track administration",
+        "description": "Create and maintain track metadata and media."
+      },
+      "setupSchema": {
+        "title": "Setup schema",
+        "description": "Manage setup field definitions per game."
+      }
+    },
+    "recentSetups": {
+      "title": "Recently opened setups"
+    }
+  },
+  "auth": {
+    "common": {
+      "displayName": "Display name",
+      "email": "Email",
+      "password": "Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "backToSignIn": "Back to sign in"
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Access your account to manage setups and profile.",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "createAccount": "Create account"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join the F1 Sets community.",
+      "createAccount": "Create account",
+      "creatingAccount": "Creating account...",
+      "alreadyHaveAccount": "Already have an account?"
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "Request a reset link by email.",
+      "sendResetLink": "Send reset link",
+      "sending": "Sending..."
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "subtitle": "Set a new password for your account.",
+      "resetToken": "Reset token",
+      "resetPassword": "Reset password",
+      "resetting": "Resetting..."
+    },
+    "changePassword": {
+      "title": "Change password",
+      "subtitle": "Update your account password.",
+      "updatePassword": "Update password",
+      "updating": "Updating..."
+    },
+    "messages": {
+      "genericFailure": "Something went wrong. Please try again.",
+      "loginFailed": "Login failed.",
+      "registrationFailed": "Registration failed.",
+      "passwordResetRequestFailed": "Could not request password reset.",
+      "resetFailed": "Reset failed.",
+      "resetRetry": "Reset failed. Please request a new reset email.",
+      "changeFailed": "Could not change password.",
+      "passwordMustDiffer": "New password must be different from the current password."
+    }
+  },
+  "shared": {
+    "gameAutocomplete": {
+      "placeholder": "Select game",
+      "clearAria": "Clear selected game",
+      "empty": "No game found"
+    },
+    "trackAutocomplete": {
+      "placeholder": "Select track",
+      "clearAria": "Clear selected track",
+      "empty": "No track found"
+    },
+    "multiFilter": {
+      "defaultPlaceholder": "Select filters",
+      "searchPlaceholder": "Search...",
+      "empty": "No option found"
+    }
+  },
+  "pagination": {
+    "first": "First",
+    "prev": "Prev",
+    "page": "Page",
+    "next": "Next",
+    "last": "Last",
+    "rows": "Rows",
+    "goTo": "Go to",
+    "go": "Go",
+    "total": "{{count}} {{entity}}",
+    "entities": {
+      "rows": "rows",
+      "tracks": "tracks",
+      "setups": "setups"
+    }
+  },
+  "discovery": {
+    "title": "Track catalog",
+    "gameLabel": "Game: {{game}}",
+    "total": "Total: {{count}}",
+    "visible": "Visible: {{count}}",
+    "filters": {
+      "game": "Game",
+      "gameAria": "Choose game",
+      "searchPlaceholder": "Search by track, circuit, or slug",
+      "features": "Data filters"
+    },
+    "table": {
+      "track": "Track",
+      "circuit": "Circuit",
+      "slug": "Slug",
+      "length": "Length",
+      "data": "Data",
+      "actions": "Actions"
+    },
+    "badges": {
+      "setups": "Setups",
+      "leaderboard": "Leaderboard",
+      "aiCurve": "AI curve",
+      "scouting": "Scouting"
+    },
+    "actions": {
+      "openSetups": "Open setups"
+    },
+    "track": {
+      "unknownCircuit": "Unknown circuit"
+    },
+    "messages": {
+      "loading": "Loading tracks...",
+      "empty": "No tracks match your filters.",
+      "loadFailed": "Failed to load tracks.",
+      "catalogUnavailable": "Track catalog unavailable.",
+      "apiUnavailable": "Track API unavailable (HTTP {{status}}).",
+      "notFound": "Track data not found.",
+      "unavailable": "Unavailable"
+    }
+  },
+  "adminTrack": {
+    "title": "Track administration",
+    "subtitle": "Manage track metadata and images.",
+    "filters": {
+      "game": "Game",
+      "searchPlaceholder": "Search tracks",
+      "image": "Image",
+      "hasImageYes": "With image",
+      "hasImageNo": "Without image"
+    },
+    "table": {
+      "slug": "Slug",
+      "grandPrix": "Grand Prix",
+      "circuit": "Circuit",
+      "length": "Length",
+      "lengthKm": "Length (km)",
+      "image": "Image",
+      "actions": "Actions"
+    },
+    "image": {
+      "available": "Available",
+      "missing": "Missing"
+    },
+    "actions": {
+      "createTrack": "Create track",
+      "uploadPhoto": "Upload photo"
+    },
+    "createModal": {
+      "title": "Create track"
+    },
+    "editModal": {
+      "title": "Edit track: {{slug}}",
+      "trackPhoto": "Track photo",
+      "noImage": "No image uploaded"
+    },
+    "messages": {
+      "loading": "Loading tracks...",
+      "empty": "No tracks found.",
+      "created": "Track created.",
+      "updated": "Track updated.",
+      "deleted": "Track deleted.",
+      "photoUploaded": "Track image uploaded.",
+      "slugRequired": "Slug is required.",
+      "lengthNumeric": "Length must be numeric.",
+      "confirmDelete": "Delete track \"{{name}}\"?"
+    }
+  },
+  "adminSetup": {
+    "title": "Setup schema administration",
+    "subtitle": "Define setup fields per game.",
+    "game": "Game",
+    "actions": {
+      "loadSchema": "Load schema",
+      "addField": "Add field",
+      "saveSchema": "Save schema"
+    },
+    "form": {
+      "fieldKeyPlaceholder": "Field key",
+      "fieldLabelPlaceholder": "Field label",
+      "required": "Required",
+      "orderPlaceholder": "Order",
+      "selectOptionsPlaceholder": "Select options (comma-separated)"
+    },
+    "messages": {
+      "saved": "Schema saved."
+    }
+  },
+  "adminLogs": {
+    "title": "Application logs",
+    "subtitle": "Inspect request/response logs and filter quickly.",
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "level": "Level",
+      "method": "Method",
+      "pathContains": "Path contains",
+      "status": "Status",
+      "emailContains": "Email contains"
+    },
+    "table": {
+      "timestamp": "Timestamp",
+      "level": "Level",
+      "method": "Method",
+      "path": "Path",
+      "query": "Query",
+      "status": "Status",
+      "duration": "Duration",
+      "user": "User",
+      "ip": "IP",
+      "json": "JSON",
+      "req": "Req",
+      "res": "Res",
+      "anonymous": "Anonymous"
+    },
+    "json": {
+      "requestTitle": "Request payload",
+      "responseTitle": "Response payload",
+      "copy": "Copy JSON",
+      "noPayload": "No payload"
+    },
+    "context": {
+      "copyValue": "Copy value",
+      "filterByValue": "Filter by value",
+      "clearFilter": "Clear filter"
+    },
+    "messages": {
+      "empty": "No logs found.",
+      "jsonCopied": "JSON copied to clipboard.",
+      "jsonCopyFailed": "Failed to copy JSON."
+    }
+  },
+  "aiDifficulty": {
+    "title": "AI Difficulty calculator",
+    "subtitle": "Estimate AI level by lap time and track curve.",
+    "form": {
+      "game": "Game",
+      "track": "Track",
+      "lapTime": "Lap time",
+      "lapTimePlaceholder": "Example: 1:30.000"
+    },
+    "messages": {
+      "noTracks": "No tracks available",
+      "loadingCurve": "Loading AI difficulty curve...",
+      "runCalculation": "Run a calculation to see recommended AI and confidence.",
+      "invalidLapTime": "Invalid lap time format."
+    },
+    "curve": {
+      "version": "Curve version",
+      "source": "Source",
+      "esportsRef": "Esports reference",
+      "averageRef": "Average reference"
+    },
+    "chart": {
+      "title": "Difficulty curve",
+      "formula": "Formula",
+      "difficultyCurve": "Difficulty curve",
+      "esportsReference": "Esports reference",
+      "averageReference": "Average reference",
+      "esportsPaceLine": "Esports pace line",
+      "averagePaceLine": "Average pace line",
+      "comfortInterval": "Pace envelope (±6 AI)",
+      "targetInterval": "Target envelope (±3 AI)",
+      "confidenceInterval": "Your confidence interval",
+      "yourPoint": "Your point",
+      "xAxis": "Lap time (m:ss.mmm)",
+      "yAxis": "AI difficulty",
+      "tooltip": "{{label}}: {{x}} -> {{y}} AI"
+    },
+    "calculation": {
+      "title": "Calculation result",
+      "recommendedAi": "Recommended AI",
+      "confidence": "Confidence range",
+      "notes": "Notes"
+    },
+    "confidence": {
+      "min": "Min",
+      "recommended": "Recommended",
+      "max": "Max"
+    }
+  },
+  "profile": {
+    "common": {
+      "avatarAlt": "{{name}} profile avatar",
+      "avatarAltSimple": "Profile avatar",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "country": "Country",
+      "dateOfBirth": "Date of birth",
+      "languages": "Languages",
+      "visibility": "Visibility",
+      "firstNameNotSet": "First name not set",
+      "notSpecified": "Not specified"
+    },
+    "page": {
+      "editSettings": "Edit settings",
+      "viewPublicLink": "View public profile"
+    },
+    "settings": {
+      "title": "Profile settings",
+      "subtitle": "Update your public information and preferences.",
+      "uploadPicture": "Upload picture",
+      "uploadingPicture": "Uploading picture...",
+      "languagesLabel": "Languages",
+      "languagesPlaceholder": "Example: English, French",
+      "visibilityLabel": "Profile visibility",
+      "saveProfile": "Save profile"
+    },
+    "visibility": {
+      "private": "Private",
+      "public": "Public"
+    },
+    "messages": {
+      "saved": "Profile saved.",
+      "pictureUpdated": "Profile picture updated.",
+      "updateFailed": "Failed to update profile.",
+      "loadFailed": "Failed to load profile.",
+      "notFound": "Profile not found.",
+      "invalidId": "Invalid profile id.",
+      "signInRequired": "Sign in required to view this profile."
+    }
+  },
+  "setups": {
+    "title": "Setups",
+    "subtitle": "Browse, publish, and compare race setups.",
+    "summary": {
+      "game": "Game: {{value}}",
+      "track": "Track: {{value}}",
+      "total": "Total setups: {{count}}"
+    },
+    "catalog": {
+      "title": "Setup catalog",
+      "results": "{{visible}} / {{total}} visible"
+    },
+    "sort": {
+      "label": "Sort",
+      "options": {
+        "title": "Title",
+        "score": "Score",
+        "newest": "Newest"
+      }
+    },
+    "presets": {
+      "namePlaceholder": "Save current filters as preset",
+      "save": "Save preset",
+      "empty": "No saved presets yet."
+    },
+    "library": {
+      "helper": "Switch between all setups, your own setups, and local favorites.",
+      "views": {
+        "all": "All",
+        "mine": "Mine",
+        "favorites": "Favorites"
+      }
+    },
+    "recommended": {
+      "title": "Recommended setups",
+      "score": "Score: {{score}}"
+    },
+    "collab": {
+      "title": "Collaborative notes",
+      "subtitle": "Add short notes and tips for this setup.",
+      "commentPlaceholder": "Write a note or coaching tip...",
+      "addComment": "Add note",
+      "empty": "No notes yet.",
+      "guestAuthor": "Guest"
+    },
+    "automation": {
+      "title": "Publish readiness",
+      "checks": {
+        "targetTrack": "Game and track selected",
+        "title": "Setup title is valid",
+        "schema": "Setup schema is available",
+        "values": "At least one setup value is filled"
+      }
+    },
+    "table": {
+      "hierarchy": "Hierarchy",
+      "title": "Title",
+      "score": "Score",
+      "votes": "Votes",
+      "created": "Created"
+    },
+    "publishModal": {
+      "title": "Publish setup",
+      "game": "Game",
+      "track": "Track",
+      "titleLabel": "Title",
+      "notesLabel": "Notes",
+      "session": "Session",
+      "weather": "Weather",
+      "assists": "Assists",
+      "input": "Input",
+      "fuel": "Fuel (kg)",
+      "tyre": "Tyre",
+      "setupFields": "Setup fields"
+    },
+    "filters": {
+      "game": "Game filter",
+      "track": "Track filter",
+      "search": "Search setup title or notes",
+      "session": "Session filter",
+      "weather": "Weather filter",
+      "input": "Input filter",
+      "tags": {
+        "game": "Game: {{value}}",
+        "track": "Track: {{value}}",
+        "search": "Search: {{value}}",
+        "session": "Session: {{value}}",
+        "weather": "Weather: {{value}}",
+        "input": "Input: {{value}}"
+      }
+    },
+    "enums": {
+      "session": {
+        "race": "Race",
+        "qualifying": "Qualifying",
+        "time-trial": "Time Trial"
+      },
+      "weather": {
+        "dry": "Dry",
+        "mixed": "Mixed",
+        "wet": "Wet"
+      },
+      "input": {
+        "wheel": "Wheel",
+        "controller": "Controller",
+        "keyboard": "Keyboard"
+      }
+    },
+    "ai": {
+      "title": "AI Difficulty by lap time",
+      "subtitle": "Use your lap on {{track}} to estimate recommended AI.",
+      "source": "Source: {{source}}",
+      "curveVersion": "Curve version: {{version}}",
+      "lapTime": "Lap time",
+      "lapTimePlaceholder": "Example: 1:30.000",
+      "calculate": "Estimate AI",
+      "recommended": "Recommended AI",
+      "confidence": "Confidence",
+      "notes": "Notes",
+      "noCurve": "No AI difficulty curve is available for this track.",
+      "invalidLapTime": "Invalid lap time format."
+    },
+    "actions": {
+      "publishSetup": "Publish setup",
+      "importJson": "Import JSON",
+      "addFavorite": "Add favorite",
+      "removeFavorite": "Remove favorite",
+      "duplicateToDraft": "Duplicate to draft",
+      "exportVisibleCsv": "Export visible CSV",
+      "share": "Share",
+      "export": "Export",
+      "upvote": "Upvote",
+      "downvote": "Downvote",
+      "hide": "Hide",
+      "unhide": "Unhide",
+      "reportSetup": "Report setup",
+      "reportReason": "Reason",
+      "report": "Report",
+      "resetFilters": "Reset filters",
+      "cancelEdit": "Cancel edit"
+    },
+    "votes": {
+      "up": "Up",
+      "down": "Down"
+    },
+    "compare": {
+      "label": "Compare with",
+      "none": "No comparison"
+    },
+    "messages": {
+      "loading": "Loading setups...",
+      "empty": "No setups found.",
+      "published": "Setup published.",
+      "updated": "Setup updated.",
+      "deleted": "Setup deleted.",
+      "confirmDelete": "Delete setup \"{{title}}\"?",
+      "reported": "Setup reported.",
+      "hidden": "Setup hidden.",
+      "unhidden": "Setup unhidden.",
+      "shareLinkCopied": "Share link copied.",
+      "shareLinkCopyFailed": "Failed to copy share link.",
+      "imported": "Setup imported.",
+      "invalidSetupFile": "Invalid setup file.",
+      "reportReasonRequired": "Report reason is required.",
+      "hideReasonPrompt": "Reason for hiding this setup (optional):",
+      "noDescription": "No description provided.",
+      "noSchema": "Setup schema is not configured for this game.",
+      "titleMinLength": "Title must contain at least 3 characters.",
+      "signInRequiredForMine": "Sign in to access your own setup library.",
+      "addedToFavorites": "Added to favorites.",
+      "removedFromFavorites": "Removed from favorites.",
+      "commentAdded": "Note added.",
+      "presetNameRequired": "Preset name is required.",
+      "presetSaved": "Preset saved.",
+      "noRowsToExport": "No visible setups to export.",
+      "csvExported": "CSV exported ({{count}} rows).",
+      "duplicatedToDraft": "Setup duplicated into publish draft."
+    }
+  }
+}

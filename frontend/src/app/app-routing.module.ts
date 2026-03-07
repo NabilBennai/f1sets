@@ -14,6 +14,11 @@ const routes: Routes = [
     loadChildren: () => import('./features/home/home.module').then((m) => m.HomeModule),
   },
   {
+    path: 'ai-difficulty',
+    loadChildren: () =>
+      import('./features/ai-difficulty/ai-difficulty.module').then((m) => m.AiDifficultyModule),
+  },
+  {
     path: 'discovery',
     canActivate: [authGuard],
     loadChildren: () =>

@@ -5,6 +5,7 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
 
 interface GameOption {
   code: string;
@@ -22,7 +23,7 @@ interface GameOption {
       multi: true,
     },
   ],
-  imports: [ReactiveFormsModule, FormsModule],
+  imports: [ReactiveFormsModule, FormsModule, TranslateModule],
 })
 export class GameAutocompleteInputComponent implements ControlValueAccessor {
   readonly valueChange = output<string>();

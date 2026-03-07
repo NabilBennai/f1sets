@@ -1,12 +1,13 @@
 import {CommonModule} from '@angular/common';
 import {Component} from '@angular/core';
+import {TranslateModule} from '@ngx-translate/core';
 import {ToastService} from './toast.service';
 import {AppToast} from './toast.models';
 
 @Component({
   selector: 'app-toast-viewport',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './toast-viewport.component.html',
   styleUrl: './toast-viewport.component.scss',
 })

@@ -1,63 +1,105 @@
-<section class="admin-setup space-y-3">
-  <header class="panel-card p-3">
-    <h2 class="text-lg font-semibold">Admin Setup Fields</h2>
-    <p class="text-sm admin-setup__muted">Define setup form fields per game.</p>
+<section class="flex flex-col gap-4">
+  <header class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+    <h2 class="flex items-center gap-2 text-xl font-semibold">
+      <i class="fa-solid fa-list-check text-sm text-base-content/70"></i>
+      {{ 'adminSetup.title' | translate }}
+    </h2>
+    <p class="mt-1 text-sm text-base-content/70">{{ 'adminSetup.subtitle' | translate }}</p>
   </header>
 
   @if (errorMessage) {
-    <article class="state-card state-card--error">{{ errorMessage }}</article>
+    <article class="alert alert-error text-sm">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ errorMessage }}</span>
+    </article>
   }
   @if (successMessage) {
-    <article class="state-card state-card--success">
-      {{ successMessage }}
+    <article class="alert alert-success text-sm">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ successMessage }}</span>
     </article>
   }
 
-  <section class="panel-card p-3 space-y-3">
-    <label class="field-group max-w-xs">
-      <span>Game</span>
-      <app-game-autocomplete-input [formControl]="gameControl" />
-    </label>
-    <div class="flex gap-2">
-      <button type="button" class="btn-secondary" (click)="loadSchema()" [disabled]="loading">
-        {{ loading ? 'Loading...' : 'Load schema' }}
-      </button>
-      <button type="button" class="btn-secondary" (click)="addField()">Add field</button>
-    </div>
+  <section class="rounded-box border border-base-300 bg-base-100 p-5 shadow-sm">
+    <div class="flex flex-col gap-3">
+      <label class="flex max-w-xs flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'adminSetup.game' | translate
+        }}</span>
+        <app-game-autocomplete-input [formControl]="gameControl" />
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          (click)="loadSchema()"
+          [disabled]="loading"
+        >
+          <i class="fa-solid fa-rotate-right text-[11px]"></i>
+          {{
+            loading ? ('common.loading' | translate) : ('adminSetup.actions.loadSchema' | translate)
+          }}
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" (click)="addField()">
+          <i class="fa-solid fa-plus text-[11px]"></i>
+          {{ 'adminSetup.actions.addField' | translate }}
+        </button>
+      </div>
 
-    <div class="admin-setup__table" [formGroup]="form">
-      <div formArrayName="fields">
-        @for (group of fieldsArray.controls; track group; let i = $index) {
-          <article class="admin-setup__row" [formGroupName]="i">
-            <input
-              class="field"
-              formControlName="fieldKey"
-              placeholder="field key (e.g. front_wing)"
-            />
-            <input class="field" formControlName="fieldLabel" placeholder="Field label" />
-            <select class="field" formControlName="fieldType">
-              @for (type of fieldTypes; track type) {
-                <option [value]="type">{{ type }}</option>
-              }
-            </select>
-            <label class="admin-setup__check">
-              <input type="checkbox" formControlName="required" />
-              Required
-            </label>
-            <input class="field" type="number" formControlName="sortOrder" placeholder="Order" />
-            <input
-              class="field"
-              formControlName="selectOptionsRaw"
-              placeholder="Select options (comma separated)"
-            />
-            <button type="button" class="btn-secondary" (click)="removeField(i)">Remove</button>
-          </article>
-        }
+      <div [formGroup]="form" class="flex flex-col gap-2">
+        <div formArrayName="fields" class="flex max-h-[62vh] flex-col gap-2 overflow-auto pr-1">
+          @for (group of fieldsArray.controls; track group; let i = $index) {
+            <article
+              class="grid grid-cols-1 gap-2 rounded-box border border-base-300 bg-base-200 p-3 xl:grid-cols-[1.2fr_1.2fr_0.8fr_0.7fr_0.6fr_1.2fr_auto]"
+              [formGroupName]="i"
+            >
+              <input
+                class="input input-bordered input-sm w-full"
+                formControlName="fieldKey"
+                [placeholder]="'adminSetup.form.fieldKeyPlaceholder' | translate"
+              />
+              <input
+                class="input input-bordered input-sm w-full"
+                formControlName="fieldLabel"
+                [placeholder]="'adminSetup.form.fieldLabelPlaceholder' | translate"
+              />
+              <select class="select select-bordered select-sm w-full" formControlName="fieldType">
+                @for (type of fieldTypes; track type) {
+                  <option [value]="type">{{ type }}</option>
+                }
+              </select>
+              <label class="label cursor-pointer justify-start gap-2 px-0">
+                <input type="checkbox" class="checkbox checkbox-sm" formControlName="required" />
+                <span class="label-text text-xs">{{ 'adminSetup.form.required' | translate }}</span>
+              </label>
+              <input
+                class="input input-bordered input-sm w-full"
+                type="number"
+                formControlName="sortOrder"
+                [placeholder]="'adminSetup.form.orderPlaceholder' | translate"
+              />
+              <input
+                class="input input-bordered input-sm w-full"
+                formControlName="selectOptionsRaw"
+                [placeholder]="'adminSetup.form.selectOptionsPlaceholder' | translate"
+              />
+              <button type="button" class="btn btn-outline btn-xs" (click)="removeField(i)">
+                <i class="fa-solid fa-trash text-[11px]"></i>
+                {{ 'common.remove' | translate }}
+              </button>
+            </article>
+          }
+        </div>
+      </div>
+
+      <div>
+        <button type="button" class="btn btn-primary btn-sm" (click)="save()" [disabled]="saving">
+          <i class="fa-solid fa-floppy-disk text-[11px]"></i>
+          {{
+            saving ? ('common.saving' | translate) : ('adminSetup.actions.saveSchema' | translate)
+          }}
+        </button>
       </div>
     </div>
-
-    <button type="button" class="btn-primary" (click)="save()" [disabled]="saving">
-      {{ saving ? 'Saving...' : 'Save schema' }}
-    </button>
   </section>
 </section>

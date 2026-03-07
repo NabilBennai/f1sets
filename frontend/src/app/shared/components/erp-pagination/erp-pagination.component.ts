@@ -1,12 +1,13 @@
 import {CommonModule} from '@angular/common';
 import {Component, EventEmitter, Input, OnChanges, Output, SimpleChanges} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-erp-pagination',
   templateUrl: './erp-pagination.component.html',
   styleUrl: './erp-pagination.component.scss',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
 })
 export class ErpPaginationComponent implements OnChanges {
   @Input() mode: 'backend' | 'frontend' = 'backend';

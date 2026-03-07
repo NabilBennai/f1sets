@@ -1,43 +1,58 @@
-<div class="multi-auto">
+<div class="relative">
   <button
     type="button"
-    class="multi-auto__trigger"
-    [class.multi-auto__trigger--dense]="dense"
+    class="multi-auto__trigger flex w-full items-center justify-between gap-2 rounded-md border border-base-300 bg-base-100 px-2 text-left"
+    [class.h-8]="dense"
+    [class.text-xs]="dense"
+    [class.min-h-10]="!dense"
+    [class.text-sm]="!dense"
     (click)="toggleOpen($event)"
   >
-    <span>{{ placeholder }}</span>
+    <span class="flex items-center gap-2"
+      ><i class="fa-solid fa-filter text-[11px]"></i>{{ placeholder | translate }}</span
+    >
     @if (selectedCount > 0) {
-      <span class="multi-auto__count">{{ selectedCount }}</span>
+      <span class="badge badge-primary badge-sm">{{ selectedCount }}</span>
     }
   </button>
 
   @if (open) {
-    <div class="multi-auto__panel" [ngStyle]="panelStyle" (click)="$event.stopPropagation()">
+    <div
+      class="fixed z-30 flex w-[260px] flex-col gap-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-xl"
+      [ngStyle]="panelStyle"
+      (click)="$event.stopPropagation()"
+    >
       <input
-        class="multi-auto__search"
+        class="input input-bordered input-sm w-full"
         type="search"
         [(ngModel)]="query"
-        placeholder="Type to filter..."
+        [placeholder]="'shared.multiFilter.searchPlaceholder' | translate"
       />
 
-      <div class="multi-auto__options">
+      <div class="flex max-h-[210px] flex-col gap-1 overflow-auto">
         @for (opt of filteredOptions; track opt.value) {
-          <label class="multi-auto__option">
+          <label class="label cursor-pointer justify-start gap-2 px-0 py-1">
             <input
               type="checkbox"
+              class="checkbox checkbox-xs"
               [checked]="isSelected(opt.value)"
               (change)="toggleValue(opt.value, $event)"
             />
-            <span>{{ opt.label }}</span>
+            <span class="label-text text-xs">{{ opt.label | translate }}</span>
           </label>
         }
         @if (filteredOptions.length === 0) {
-          <p class="multi-auto__empty">{{ emptyLabel }}</p>
+          <p class="text-xs text-base-content/70">{{ emptyLabel | translate }}</p>
         }
       </div>
 
-      <button type="button" class="btn-secondary btn-secondary--tiny" (click)="clear($event)">
-        Clear
+      <button
+        type="button"
+        class="btn btn-outline btn-xs justify-self-start"
+        (click)="clear($event)"
+      >
+        <i class="fa-solid fa-filter-circle-xmark text-[11px]"></i>
+        {{ 'common.clear' | translate }}
       </button>
     </div>
   }

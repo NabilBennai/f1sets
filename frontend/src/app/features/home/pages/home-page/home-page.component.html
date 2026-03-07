@@ -1,44 +1,154 @@
-<section class="home">
-  <header class="hero panel">
-    <div class="hero__copy">
-      <p class="hero__eyebrow">F1 Sets Platform</p>
-      <h1>Build Faster Race Weekends With Smarter Setup Data</h1>
-      <p class="hero__text">
-        Discover track insights, filter for relevant builds, and move from browsing to action in
-        seconds.
-      </p>
-
-      <div class="hero__actions">
-        <a class="btn-primary" routerLink="/discovery">Explore Track Catalog</a>
-        <a class="btn-secondary" href="#why-f1sets">See Why Drivers Use It</a>
+<section class="flex flex-col gap-4">
+  <header class="rounded-box border border-base-300 bg-base-100 p-6 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h1 class="flex items-center gap-2 text-3xl font-semibold tracking-tight">
+          <i class="fa-solid fa-gauge-high text-xl text-base-content/70"></i>
+          {{ 'home.title' | translate }}
+        </h1>
+        <p class="mt-2 text-sm text-base-content/70">
+          {{ 'home.subtitle' | translate }}
+        </p>
       </div>
-    </div>
-
-    <div aria-label="Platform highlights" class="hero__stats">
-      @for (item of highlights; track item) {
-        <article class="stat-card">
-          <p class="stat-card__value">{{ item.value }}</p>
-          <p class="stat-card__label">{{ item.label }}</p>
-        </article>
+      @if (isAuthenticated) {
+        <span class="badge badge-ghost badge-lg">
+          <i class="fa-solid fa-shield-halved mr-2 text-[11px]"></i>
+          {{ isAdmin ? ('home.roles.admin' | translate) : ('home.roles.user' | translate) }}
+        </span>
+      } @else {
+        <span class="badge badge-ghost badge-lg">
+          <i class="fa-solid fa-user-slash mr-2 text-[11px]"></i>
+          {{ 'home.roles.guest' | translate }}
+        </span>
       }
+    </div>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <a class="btn btn-primary btn-sm" routerLink="/discovery">
+        <i class="fa-solid fa-compass text-xs"></i>
+        {{ 'nav.trackCatalog' | translate }}
+      </a>
+      <a class="btn btn-outline btn-sm" routerLink="/setups">
+        <i class="fa-solid fa-screwdriver-wrench text-xs"></i>{{ 'nav.setups' | translate }}
+      </a>
+      <a class="btn btn-outline btn-sm" routerLink="/ai-difficulty">
+        <i class="fa-solid fa-chart-line text-xs"></i>
+        {{ 'nav.aiDifficulty' | translate }}
+      </a>
     </div>
   </header>
 
-  <section class="feature-grid" id="why-f1sets">
-    @for (feature of features; track feature; let i = $index) {
-      <article [style.--delay]="i" class="feature-card panel-card">
-        <p class="feature-card__index">0{{ i + 1 }}</p>
-        <h2>{{ feature.title }}</h2>
-        <p>{{ feature.description }}</p>
+  @if (onboardingVisible) {
+    <article class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="flex items-center gap-2 text-base font-semibold">
+          <i class="fa-solid fa-list-check text-sm text-base-content/70"></i>
+          {{ 'home.onboarding.title' | translate }}
+        </h2>
+        <div class="flex items-center gap-2">
+          <span class="badge badge-ghost">
+            {{
+              'home.onboarding.progress'
+                | translate: {done: onboardingCompletedCount, total: onboardingItems.length}
+            }}
+          </span>
+          <button type="button" class="btn btn-ghost btn-xs" (click)="dismissOnboarding()">
+            <i class="fa-solid fa-xmark text-[11px]"></i>
+            {{ 'home.onboarding.dismiss' | translate }}
+          </button>
+        </div>
+      </div>
+      <progress
+        class="progress progress-primary mt-3 w-full"
+        [value]="onboardingProgress"
+        max="100"
+      ></progress>
+      <div class="mt-3 flex flex-col gap-2">
+        @for (item of onboardingItems; track item.id) {
+          <label
+            class="flex cursor-pointer items-start gap-3 rounded-box border border-base-300 bg-base-200 px-3 py-2"
+          >
+            <input
+              type="checkbox"
+              class="checkbox checkbox-sm mt-0.5"
+              [checked]="isOnboardingItemDone(item.id)"
+              (change)="toggleOnboardingItem(item.id)"
+            />
+            <span>
+              <span class="block text-sm font-medium">{{ item.titleKey | translate }}</span>
+              <span class="block text-xs text-base-content/70">{{
+                item.descriptionKey | translate
+              }}</span>
+            </span>
+          </label>
+        }
+      </div>
+    </article>
+  }
+
+  <section class="grid grid-cols-1 gap-3 lg:grid-cols-3">
+    @for (action of visibleQuickActions; track action.route) {
+      <a
+        class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm transition hover:bg-base-200"
+        [routerLink]="action.route"
+      >
+        <div class="flex items-center gap-2 text-sm font-semibold">
+          <i [class]="action.iconClass + ' text-[13px] text-base-content/70'"></i>
+          <span>{{ action.titleKey | translate }}</span>
+        </div>
+        <p class="mt-2 text-xs text-base-content/70">{{ action.descriptionKey | translate }}</p>
+      </a>
+    }
+  </section>
+
+  @if (recentSetups.length > 0) {
+    <section class="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm">
+      <div class="mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-clock-rotate-left text-sm text-base-content/70"></i>
+        <h2 class="text-base font-semibold">{{ 'home.recentSetups.title' | translate }}</h2>
+      </div>
+      <div class="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        @for (item of recentSetups; track item.id) {
+          <a
+            class="rounded-box border border-base-300 bg-base-200 p-3 transition hover:bg-base-300"
+            [routerLink]="['/setups', item.gameCode, item.trackSlug]"
+            [queryParams]="{setupId: item.id}"
+          >
+            <p class="text-sm font-medium">{{ item.title }}</p>
+            <p class="mt-1 text-xs text-base-content/70">
+              {{ item.gameCode | uppercase }} / {{ item.trackSlug | uppercase }}
+            </p>
+            <p class="mt-1 text-xs text-base-content/60">
+              {{ item.openedAt | date: 'dd MMM yyyy, HH:mm' }}
+            </p>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="flex flex-wrap gap-3">
+    @for (item of highlights; track item) {
+      <article
+        class="w-full rounded-box border border-base-300 bg-base-100 p-4 shadow-sm md:min-w-[220px] md:flex-1"
+      >
+        <p class="text-xs font-medium uppercase tracking-wide text-base-content/70">
+          {{ item.labelKey | translate }}
+        </p>
+        <p class="mt-1 text-3xl font-bold">{{ item.value }}</p>
       </article>
     }
   </section>
 
-  <section class="panel cta">
-    <div>
-      <p class="cta__eyebrow">Start Your Next Session</p>
-      <h2>Open the catalog and pick the perfect baseline in minutes.</h2>
-    </div>
-    <a class="btn-primary" routerLink="/discovery">Go To Track Catalog</a>
+  <section class="flex flex-wrap gap-3">
+    @for (feature of features; track feature) {
+      <article
+        class="w-full rounded-box border border-base-300 bg-base-100 p-4 shadow-sm md:min-w-[220px] md:flex-1"
+      >
+        <h2 class="text-base font-semibold">{{ feature.titleKey | translate }}</h2>
+        <p class="mt-2 text-sm leading-6 text-base-content/80">
+          {{ feature.descriptionKey | translate }}
+        </p>
+      </article>
+    }
   </section>
 </section>

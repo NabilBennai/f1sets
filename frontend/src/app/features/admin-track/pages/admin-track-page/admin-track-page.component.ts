@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {debounceTime, Subject, takeUntil} from 'rxjs';
 import {ToastService} from '../../../../core/toast/toast.service';
 import {AdminTrackService} from '../../data-access/admin-track.service';
@@ -34,7 +35,7 @@ type SortColumn = 'slug' | 'grandPrixName' | 'circuitName' | 'lengthKm' | 'hasIm
   templateUrl: './admin-track-page.component.html',
   styleUrl: './admin-track-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, MultiAutocompleteFilterComponent],
+  imports: [ReactiveFormsModule, TranslateModule, MultiAutocompleteFilterComponent],
 })
 export class AdminTrackPageComponent implements OnInit, OnDestroy {
   readonly gameOptions = [
@@ -48,8 +49,8 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
     query: new FormControl('', {nonNullable: true}),
   });
   readonly hasImageFilterOptions: MultiFilterOption[] = [
-    {value: 'yes', label: 'Has image'},
-    {value: 'no', label: 'No image'},
+    {value: 'yes', label: 'adminTrack.filters.hasImageYes'},
+    {value: 'no', label: 'adminTrack.filters.hasImageNo'},
   ];
   selectedHasImageFilters: string[] = [];
 
@@ -92,6 +93,7 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
   constructor(
     private readonly adminTrackService: AdminTrackService,
     private readonly toastService: ToastService,
+    private readonly translateService: TranslateService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
@@ -183,13 +185,13 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
     const value = this.createForm.getRawValue();
     const slug = value.slug.trim();
     if (!slug) {
-      this.toastService.error('Slug is required.');
+      this.toastService.error(this.translateService.instant('adminTrack.messages.slugRequired'));
       return;
     }
 
     const parsedLength = this.parseLength(value.lengthKm);
     if (value.lengthKm.trim().length > 0 && parsedLength === null) {
-      this.toastService.error('Length must be numeric.');
+      this.toastService.error(this.translateService.instant('adminTrack.messages.lengthNumeric'));
       return;
     }
 
@@ -207,7 +209,7 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
           this.tracks = [created, ...this.tracks];
           this.refreshVisibleTracks();
           this.closeCreateModal();
-          this.toastService.success('Track created successfully.');
+          this.toastService.success(this.translateService.instant('adminTrack.messages.created'));
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -227,13 +229,13 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
     const value = this.editForm.getRawValue();
     const slug = value.slug.trim();
     if (!slug) {
-      this.toastService.error('Slug is required.');
+      this.toastService.error(this.translateService.instant('adminTrack.messages.slugRequired'));
       return;
     }
 
     const parsedLength = this.parseLength(value.lengthKm);
     if (value.lengthKm.trim().length > 0 && parsedLength === null) {
-      this.toastService.error('Length must be numeric.');
+      this.toastService.error(this.translateService.instant('adminTrack.messages.lengthNumeric'));
       return;
     }
 
@@ -250,7 +252,7 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
           this.saving = false;
           this.tracks = this.tracks.map((track) => (track.id === updated.id ? updated : track));
           this.refreshVisibleTracks();
-          this.toastService.success('Track updated.');
+          this.toastService.success(this.translateService.instant('adminTrack.messages.updated'));
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -268,7 +270,13 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
     }
 
     const name = track.grandPrixName ?? track.slug;
-    if (!window.confirm(`Delete ${name}? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        this.translateService.instant('adminTrack.messages.confirmDelete', {
+          name,
+        }),
+      )
+    ) {
       return;
     }
 
@@ -281,7 +289,7 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
         if (this.editTrackId === track.id) {
           this.closeEditModal();
         }
-        this.toastService.success('Track deleted.');
+        this.toastService.success(this.translateService.instant('adminTrack.messages.deleted'));
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -317,7 +325,9 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
             : track,
         );
         this.refreshVisibleTracks();
-        this.toastService.success('Track photo uploaded.');
+        this.toastService.success(
+          this.translateService.instant('adminTrack.messages.photoUploaded'),
+        );
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -423,8 +433,11 @@ export class AdminTrackPageComponent implements OnInit, OnDestroy {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? `Request failed (status ${error.status}).`;
+      return (
+        error.error?.message ??
+        this.translateService.instant('common.requestFailedWithStatus', {status: error.status})
+      );
     }
-    return 'Request failed.';
+    return this.translateService.instant('common.requestFailed');
   }
 }

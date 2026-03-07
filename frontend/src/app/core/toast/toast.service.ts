@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject} from 'rxjs';
 import {AppToast, AppToastType} from './toast.models';
 
@@ -15,6 +16,8 @@ export class ToastService {
   private nextId = 1;
 
   readonly toasts$ = this.toastsSubject.asObservable();
+
+  constructor(private readonly translateService: TranslateService) {}
 
   success(message: string, options: ToastOptions = {}): number {
     return this.show('success', message, options);
@@ -50,11 +53,11 @@ export class ToastService {
   private defaultTitle(type: AppToastType): string {
     switch (type) {
       case 'success':
-        return 'Success';
+        return this.translateService.instant('toast.titles.success');
       case 'error':
-        return 'Error';
+        return this.translateService.instant('toast.titles.error');
       default:
-        return 'Info';
+        return this.translateService.instant('toast.titles.info');
     }
   }
 }

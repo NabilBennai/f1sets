@@ -1,0 +1,232 @@
+<section class="flex min-h-0 flex-col gap-4">
+  <div class="grid min-h-0 gap-4 2xl:grid-cols-[40rem_minmax(0,1fr)]">
+    <article
+      class="card border border-base-300 bg-base-100 shadow-sm 2xl:sticky 2xl:top-4 2xl:self-start"
+      [formGroup]="form"
+    >
+      <div class="card-body gap-4 p-0">
+        <div class="border-b border-base-300 px-4 py-3">
+          <p class="flex items-center gap-2 text-sm font-semibold">
+            <i class="fa-solid fa-sliders text-xs text-base-content/70"></i>
+            {{ 'aiDifficulty.title' | translate }}
+          </p>
+          <p class="text-xs text-base-content/70">{{ 'aiDifficulty.subtitle' | translate }}</p>
+        </div>
+
+        <div class="px-4 pb-4">
+          <div class="rounded-box border border-base-300">
+            <div
+              class="grid items-center gap-2 border-b border-base-300 bg-base-200 px-3 py-2 sm:grid-cols-[8rem_minmax(0,1fr)]"
+            >
+              <p class="flex items-center gap-2 text-xs font-medium text-base-content/80">
+                <i class="fa-solid fa-gamepad text-[11px]"></i>
+                {{ 'aiDifficulty.form.game' | translate }}
+              </p>
+              <select
+                class="select select-bordered select-sm w-full"
+                formControlName="gameCode"
+                (change)="onGameChange()"
+              >
+                @for (option of gameOptions; track option.code) {
+                  <option [value]="option.code">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div
+              class="grid items-center gap-2 border-b border-base-300 px-3 py-2 sm:grid-cols-[8rem_minmax(0,1fr)]"
+            >
+              <p class="flex items-center gap-2 text-xs font-medium text-base-content/80">
+                <i class="fa-solid fa-road text-[11px]"></i>
+                {{ 'aiDifficulty.form.track' | translate }}
+              </p>
+              <select
+                class="select select-bordered select-sm w-full"
+                formControlName="trackSlug"
+                [disabled]="tracksLoading || tracks.length === 0"
+                (change)="onTrackChange()"
+              >
+                @if (tracks.length === 0) {
+                  <option value="">{{ 'aiDifficulty.messages.noTracks' | translate }}</option>
+                } @else {
+                  @for (track of tracks; track track.id) {
+                    <option [value]="track.slug">{{ track.grandPrixName || track.slug }}</option>
+                  }
+                }
+              </select>
+            </div>
+
+            <div class="grid items-center gap-2 px-3 py-2 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <p class="flex items-center gap-2 text-xs font-medium text-base-content/80">
+                <i class="fa-solid fa-stopwatch text-[11px]"></i>
+                {{ 'aiDifficulty.form.lapTime' | translate }}
+              </p>
+              <input
+                class="input input-bordered input-sm w-full"
+                formControlName="lapTime"
+                [placeholder]="'aiDifficulty.form.lapTimePlaceholder' | translate"
+              />
+            </div>
+          </div>
+
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <button
+              class="btn btn-outline btn-sm"
+              type="button"
+              [disabled]="!curve || curve.esportsRefTimeMs === null"
+              (click)="applyReferenceLapTime('esports')"
+            >
+              <i class="fa-solid fa-flag-checkered text-xs"></i>
+              {{ 'aiDifficulty.curve.esportsRef' | translate }}
+            </button>
+            <button
+              class="btn btn-outline btn-sm"
+              type="button"
+              [disabled]="!curve || curve.avgRefTimeMs === null"
+              (click)="applyReferenceLapTime('average')"
+            >
+              <i class="fa-solid fa-users text-xs"></i>
+              {{ 'aiDifficulty.curve.averageRef' | translate }}
+            </button>
+          </div>
+
+          <button
+            class="btn btn-primary mt-3 w-full"
+            type="button"
+            [disabled]="calculating || curveLoading || !curve"
+            (click)="calculate()"
+          >
+            <i
+              class="text-xs"
+              [class.fa-solid]="true"
+              [class.fa-spinner]="calculating"
+              [class.fa-spin]="calculating"
+              [class.fa-calculator]="!calculating"
+            ></i>
+            {{
+              calculating ? ('common.calculating' | translate) : ('common.calculate' | translate)
+            }}
+          </button>
+
+          @if (curve) {
+            <div class="mt-3 rounded-box border border-base-300 bg-base-200 p-3 text-sm">
+              <div class="grid gap-1 sm:grid-cols-[7rem_minmax(0,1fr)]">
+                <p class="flex items-center gap-2 text-xs text-base-content/70">
+                  <i class="fa-solid fa-road text-[11px]"></i
+                  >{{ 'aiDifficulty.form.track' | translate }}
+                </p>
+                <p class="font-medium">{{ selectedTrackLabel }}</p>
+                <p class="flex items-center gap-2 text-xs text-base-content/70">
+                  <i class="fa-solid fa-code-branch text-[11px]"></i
+                  >{{ 'aiDifficulty.curve.version' | translate }}
+                </p>
+                <p class="font-medium">{{ curve.curveVersion }}</p>
+                <p class="flex items-center gap-2 text-xs text-base-content/70">
+                  <i class="fa-solid fa-gamepad text-[11px]"></i
+                  >{{ 'aiDifficulty.form.game' | translate }}
+                </p>
+                <p class="font-medium">{{ form.controls.gameCode.getRawValue() | uppercase }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </article>
+
+    <div class="flex min-h-0 flex-col gap-4">
+      @if (errorMessage) {
+        <article class="alert alert-error text-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </article>
+      }
+
+      @if (curveLoading) {
+        <article class="card border border-base-300 bg-base-100 shadow-sm">
+          <div class="card-body flex-row items-center gap-2 p-4 text-sm text-base-content/70">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            {{ 'aiDifficulty.messages.loadingCurve' | translate }}
+          </div>
+        </article>
+      }
+
+      @if (curve) {
+        @if (calculation) {
+          <article class="card border border-base-300 bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+              <p class="flex items-center gap-2 text-sm font-medium">
+                <i class="fa-solid fa-square-poll-vertical text-xs text-base-content/70"></i>
+                {{ 'aiDifficulty.calculation.title' | translate }}
+              </p>
+
+              <div class="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+                <div class="rounded-box border border-base-300 bg-base-200 p-3">
+                  <p class="flex items-center gap-2 text-xs text-base-content/70">
+                    <i class="fa-solid fa-stopwatch text-[11px]"></i>
+                    {{ 'aiDifficulty.form.lapTime' | translate }}
+                  </p>
+                  <p class="mt-1 font-medium">{{ calculatedLapTimeDisplay }}</p>
+                </div>
+                <div class="rounded-box border border-base-300 bg-base-200 p-3">
+                  <p class="flex items-center gap-2 text-xs text-base-content/70">
+                    <i class="fa-solid fa-robot text-[11px]"></i>
+                    {{ 'aiDifficulty.calculation.recommendedAi' | translate }}
+                  </p>
+                  <p class="mt-1 text-lg font-bold">{{ calculation.difficulty }}</p>
+                </div>
+                <div class="rounded-box border border-base-300 bg-base-200 p-3">
+                  <p class="flex items-center gap-2 text-xs text-base-content/70">
+                    <i class="fa-solid fa-signal text-[11px]"></i>
+                    {{ 'aiDifficulty.calculation.confidence' | translate }}
+                  </p>
+                  <p class="mt-1 font-medium">
+                    {{ calculation.confidence.min }} - {{ calculation.confidence.max }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="divider my-2"></div>
+
+              <div class="grid gap-2 text-sm sm:grid-cols-2">
+                <div class="rounded-box border border-base-300 bg-base-200 p-3">
+                  <p class="flex items-center gap-2 text-xs text-base-content/70">
+                    <i class="fa-solid fa-flag-checkered text-[11px]"></i>
+                    {{ 'aiDifficulty.curve.esportsRef' | translate }}
+                  </p>
+                  <p class="mt-1 font-medium">
+                    {{
+                      curve.esportsRefTimeMs !== null
+                        ? formatLapTimeMs(curve.esportsRefTimeMs)
+                        : ('common.notAvailable' | translate)
+                    }}
+                  </p>
+                </div>
+                <div class="rounded-box border border-base-300 bg-base-200 p-3">
+                  <p class="flex items-center gap-2 text-xs text-base-content/70">
+                    <i class="fa-solid fa-users text-[11px]"></i>
+                    {{ 'aiDifficulty.curve.averageRef' | translate }}
+                  </p>
+                  <p class="mt-1 font-medium">
+                    {{
+                      curve.avgRefTimeMs !== null
+                        ? formatLapTimeMs(curve.avgRefTimeMs)
+                        : ('common.notAvailable' | translate)
+                    }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card border border-base-300 bg-base-100 shadow-sm">
+            <div class="card-body p-4">
+              <div class="h-[420px]">
+                <canvas #curveCanvas></canvas>
+              </div>
+            </div>
+          </article>
+        }
+      }
+    </div>
+  </div>
+</section>

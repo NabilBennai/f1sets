@@ -121,10 +121,15 @@ describe('track-list-view.presenter', () => {
     const cardWithFallback = toTrackCard(tracks[1]);
 
     expect(cardWithData.formattedLength).toBe('5.793 km');
-    expect(cardWithData.badges.map((badge) => badge.label)).toEqual(['Setups', 'AI Curve']);
+    expect(cardWithData.badges.map((badge) => badge.labelKey)).toEqual([
+      'discovery.badges.setups',
+      'discovery.badges.aiCurve',
+    ]);
 
-    expect(cardWithFallback.formattedLength).toBe('N/A');
-    expect(cardWithFallback.badges.map((badge) => badge.label)).toEqual(['Leaderboard']);
+    expect(cardWithFallback.formattedLength).toBe('');
+    expect(cardWithFallback.badges.map((badge) => badge.labelKey)).toEqual([
+      'discovery.badges.leaderboard',
+    ]);
     expect(cardWithFallback.subtitle).toBe('Silverstone');
   });
 
@@ -142,9 +147,9 @@ describe('track-list-view.presenter', () => {
     });
 
     expect(card.title).toBe('generic');
-    expect(card.subtitle).toBe('Unknown circuit');
-    expect(card.formattedLength).toBe('N/A');
-    expect(card.badges).toEqual([{label: 'Scouting', tone: 'success'}]);
+    expect(card.subtitle).toBe('');
+    expect(card.formattedLength).toBe('');
+    expect(card.badges).toEqual([{labelKey: 'discovery.badges.scouting', tone: 'success'}]);
   });
 
   it('formats numeric string length correctly', () => {

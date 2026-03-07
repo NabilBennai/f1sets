@@ -20,5 +20,20 @@ public class AiDifficultyCurve {
   @Column(name = "track_id", nullable = false)
   private Long trackId;
 
+  @Column(nullable = false)
+  private Double slope;
+
+  @Column(nullable = false)
+  private Double intercept;
+
+  @Column(name = "esports_ref_time_ms")
+  private Integer esportsRefTimeMs;
+
+  @Column(name = "avg_ref_time_ms")
+  private Integer avgRefTimeMs;
+
+  @Column(length = 255)
+  private String source;
+
   private Integer version;
 }

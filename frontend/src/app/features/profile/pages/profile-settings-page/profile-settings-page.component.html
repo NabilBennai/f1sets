@@ -1,17 +1,36 @@
-<section class="settings-shell">
-  <article class="panel settings-card">
-    <p class="eyebrow">Profile Settings</p>
-    <h1>Edit Your Profile</h1>
-    <p class="copy">Control what is visible publicly and keep your personal data up to date.</p>
+<section class="flex justify-center px-4 py-4">
+  <article
+    class="w-full max-w-[860px] rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+  >
+    <h1 class="flex items-center gap-2 text-2xl font-semibold">
+      <i class="fa-solid fa-user-gear text-lg text-base-content/70"></i>
+      {{ 'profile.settings.title' | translate }}
+    </h1>
+    <p class="mt-2 text-sm text-base-content/70">
+      {{ 'profile.settings.subtitle' | translate }}
+    </p>
 
-    <div class="avatar-section">
+    <div class="mt-5 flex flex-wrap items-center gap-3">
       @if (avatarUrl) {
-        <img [src]="avatarUrl" alt="Profile avatar" class="avatar" />
+        <img
+          [src]="avatarUrl"
+          [alt]="'profile.common.avatarAltSimple' | translate"
+          class="h-20 w-20 rounded-full object-cover"
+        />
       } @else {
-        <div class="avatar avatar--fallback">?</div>
+        <div
+          class="flex h-20 w-20 items-center justify-center rounded-full bg-base-300 text-xl font-bold"
+        >
+          ?
+        </div>
       }
-      <label class="btn-secondary cursor-pointer">
-        {{ uploading ? 'Uploading...' : 'Upload Picture' }}
+      <label class="btn btn-outline btn-sm cursor-pointer">
+        <i class="fa-solid fa-image text-[11px]"></i>
+        {{
+          uploading
+            ? ('profile.settings.uploadingPicture' | translate)
+            : ('profile.settings.uploadPicture' | translate)
+        }}
         <input
           (change)="onAvatarFileSelected($event)"
           accept="image/png,image/jpeg,image/webp"
@@ -21,57 +40,80 @@
       </label>
     </div>
 
-    <form (ngSubmit)="submit()" [formGroup]="form" class="form" novalidate>
-      <div class="row two-cols">
-        <label class="field-group">
-          <span>First Name</span>
-          <input class="field" formControlName="firstName" type="text" />
+    <form (ngSubmit)="submit()" [formGroup]="form" class="mt-6 flex flex-col gap-4" novalidate>
+      <div class="flex flex-wrap gap-3">
+        <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+          <span class="text-xs font-medium text-base-content/80">{{
+            'profile.common.firstName' | translate
+          }}</span>
+          <input class="input input-bordered w-full" formControlName="firstName" type="text" />
         </label>
-        <label class="field-group">
-          <span>Last Name</span>
-          <input class="field" formControlName="lastName" type="text" />
-        </label>
-      </div>
-
-      <div class="row two-cols">
-        <label class="field-group">
-          <span>Date of Birth</span>
-          <input class="field" formControlName="dateOfBirth" type="date" />
-        </label>
-        <label class="field-group">
-          <span>Country</span>
-          <input class="field" formControlName="country" type="text" />
+        <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+          <span class="text-xs font-medium text-base-content/80">{{
+            'profile.common.lastName' | translate
+          }}</span>
+          <input class="input input-bordered w-full" formControlName="lastName" type="text" />
         </label>
       </div>
 
-      <label class="field-group">
-        <span>Languages Used (comma separated)</span>
+      <div class="flex flex-wrap gap-3">
+        <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+          <span class="text-xs font-medium text-base-content/80">{{
+            'profile.common.dateOfBirth' | translate
+          }}</span>
+          <input class="input input-bordered w-full" formControlName="dateOfBirth" type="date" />
+        </label>
+        <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+          <span class="text-xs font-medium text-base-content/80">{{
+            'profile.common.country' | translate
+          }}</span>
+          <input class="input input-bordered w-full" formControlName="country" type="text" />
+        </label>
+      </div>
+
+      <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'profile.settings.languagesLabel' | translate
+        }}</span>
         <input
-          class="field"
+          class="input input-bordered w-full"
           formControlName="languages"
-          placeholder="English, French"
+          [placeholder]="'profile.settings.languagesPlaceholder' | translate"
           type="text"
         />
       </label>
 
-      <label class="field-group">
-        <span>Profile Visibility</span>
-        <select class="field" formControlName="visibility">
-          <option value="PRIVATE">Private</option>
-          <option value="PUBLIC">Public</option>
+      <label class="flex min-w-[220px] flex-1 flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'profile.settings.visibilityLabel' | translate
+        }}</span>
+        <select class="select select-bordered w-full" formControlName="visibility">
+          <option value="PRIVATE">{{ 'profile.visibility.private' | translate }}</option>
+          <option value="PUBLIC">{{ 'profile.visibility.public' | translate }}</option>
         </select>
       </label>
 
       @if (errorMessage) {
-        <p class="message error">{{ errorMessage }}</p>
+        <div class="alert alert-error py-2 text-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
       }
       @if (successMessage) {
-        <p class="message success">{{ successMessage }}</p>
+        <div class="alert alert-success py-2 text-sm">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>{{ successMessage }}</span>
+        </div>
       }
 
-      <button [disabled]="saving || loading" class="btn-primary" type="submit">
-        {{ saving ? 'Saving...' : 'Save Profile' }}
-      </button>
+      <div>
+        <button [disabled]="saving || loading" class="btn btn-primary" type="submit">
+          <i class="fa-solid fa-floppy-disk text-[11px]"></i>
+          {{
+            saving ? ('common.saving' | translate) : ('profile.settings.saveProfile' | translate)
+          }}
+        </button>
+      </div>
     </form>
   </article>
 </section>

@@ -5,6 +5,7 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
+import {TranslateModule} from '@ngx-translate/core';
 
 export interface TrackAutocompleteOption {
   slug: string;
@@ -22,7 +23,7 @@ export interface TrackAutocompleteOption {
       multi: true,
     },
   ],
-  imports: [ReactiveFormsModule, FormsModule],
+  imports: [ReactiveFormsModule, FormsModule, TranslateModule],
 })
 export class TrackAutocompleteInputComponent implements ControlValueAccessor {
   readonly options = input<TrackAutocompleteOption[]>([]);

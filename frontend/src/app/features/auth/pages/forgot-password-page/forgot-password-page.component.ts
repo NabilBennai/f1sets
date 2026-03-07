@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AuthService} from '../../data-access/auth.service';
 import {RouterLink} from '@angular/router';
 
@@ -13,7 +14,7 @@ type ForgotPasswordFormGroup = FormGroup<{
   templateUrl: './forgot-password-page.component.html',
   styleUrl: './forgot-password-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
 })
 export class ForgotPasswordPageComponent {
   readonly form: ForgotPasswordFormGroup = new FormGroup({
@@ -27,7 +28,10 @@ export class ForgotPasswordPageComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly translateService: TranslateService,
+  ) {}
 
   submit(): void {
     if (this.form.invalid || this.loading) {
@@ -53,8 +57,11 @@ export class ForgotPasswordPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Unable to process password reset request.';
+      return (
+        error.error?.message ??
+        this.translateService.instant('auth.messages.passwordResetRequestFailed')
+      );
     }
-    return 'Unable to process password reset request.';
+    return this.translateService.instant('auth.messages.passwordResetRequestFailed');
   }
 }

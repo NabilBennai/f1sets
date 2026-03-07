@@ -1,37 +1,63 @@
-<section class="auth-shell">
-  <article class="panel auth-card">
-    <p class="auth-eyebrow">Welcome Back</p>
-    <h1>Sign in to F1 Sets</h1>
-    <p class="auth-copy">Access your setup profile and secure account tools.</p>
+<section class="flex min-h-[70vh] items-center justify-center px-4 py-6">
+  <article
+    class="w-full max-w-[460px] rounded-box border border-base-300 bg-base-100 p-6 shadow-sm"
+  >
+    <h1 class="flex items-center gap-2 text-2xl font-semibold">
+      <i class="fa-solid fa-right-to-bracket text-lg text-base-content/70"></i>
+      {{ 'auth.login.title' | translate }}
+    </h1>
+    <p class="mt-2 text-sm text-base-content/70">{{ 'auth.login.subtitle' | translate }}</p>
 
-    <form (ngSubmit)="submit()" [formGroup]="form" class="auth-form" novalidate>
-      <label class="field-group">
-        <span>Email</span>
-        <input autocomplete="email" class="field" formControlName="email" type="email" />
+    <form (ngSubmit)="submit()" [formGroup]="form" class="mt-5 flex flex-col gap-3" novalidate>
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'auth.common.email' | translate
+        }}</span>
+        <input
+          autocomplete="email"
+          class="input input-bordered w-full"
+          formControlName="email"
+          type="email"
+        />
       </label>
 
-      <label class="field-group">
-        <span>Password</span>
+      <label class="flex flex-col gap-1">
+        <span class="text-xs font-medium text-base-content/80">{{
+          'auth.common.password' | translate
+        }}</span>
         <input
           autocomplete="current-password"
-          class="field"
+          class="input input-bordered w-full"
           formControlName="password"
           type="password"
         />
       </label>
 
       @if (errorMessage) {
-        <p class="auth-error">{{ errorMessage }}</p>
+        <div class="alert alert-error py-2 text-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ errorMessage }}</span>
+        </div>
       }
 
-      <button [disabled]="loading" class="btn-primary w-full" type="submit">
-        {{ loading ? 'Signing In...' : 'Sign In' }}
+      <button [disabled]="loading" class="btn btn-primary w-full" type="submit">
+        <i
+          class="fa-solid"
+          [class.fa-spinner]="loading"
+          [class.fa-spin]="loading"
+          [class.fa-right-to-bracket]="!loading"
+        ></i>
+        {{ loading ? ('auth.login.signingIn' | translate) : ('auth.login.signIn' | translate) }}
       </button>
     </form>
 
-    <div class="auth-links">
-      <a routerLink="/auth/forgot-password">Forgot password?</a>
-      <a routerLink="/auth/register">Create account</a>
+    <div class="mt-4 flex flex-wrap justify-between gap-3 text-sm">
+      <a class="link link-hover" routerLink="/auth/forgot-password">{{
+        'auth.login.forgotPassword' | translate
+      }}</a>
+      <a class="link link-hover" routerLink="/auth/register">{{
+        'auth.login.createAccount' | translate
+      }}</a>
     </div>
   </article>
 </section>

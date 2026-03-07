@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {AuthService} from '../../data-access/auth.service';
 
 type ChangePasswordFormGroup = FormGroup<{
@@ -13,7 +14,7 @@ type ChangePasswordFormGroup = FormGroup<{
   templateUrl: './change-password-page.component.html',
   styleUrl: './change-password-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslateModule],
 })
 export class ChangePasswordPageComponent {
   readonly form: ChangePasswordFormGroup = new FormGroup({
@@ -31,7 +32,10 @@ export class ChangePasswordPageComponent {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly translateService: TranslateService,
+  ) {}
 
   submit(): void {
     if (this.form.invalid || this.loading) {
@@ -41,7 +45,7 @@ export class ChangePasswordPageComponent {
 
     const value = this.form.getRawValue();
     if (value.currentPassword === value.newPassword) {
-      this.errorMessage = 'New password must be different from the current password.';
+      this.errorMessage = this.translateService.instant('auth.messages.passwordMustDiffer');
       return;
     }
 
@@ -72,8 +76,8 @@ export class ChangePasswordPageComponent {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? 'Unable to change password.';
+      return error.error?.message ?? this.translateService.instant('auth.messages.changeFailed');
     }
-    return 'Unable to change password.';
+    return this.translateService.instant('auth.messages.changeFailed');
   }
 }

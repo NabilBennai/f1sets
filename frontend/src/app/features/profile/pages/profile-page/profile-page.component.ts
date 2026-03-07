@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {catchError, map, Observable, of, switchMap} from 'rxjs';
 import {ProfileService} from '../../data-access/profile.service';
 import {Profile} from '../../data-access/profile.models';
@@ -19,7 +20,7 @@ interface ProfilePageVm {
   templateUrl: './profile-page.component.html',
   styleUrl: './profile-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, AsyncPipe],
+  imports: [RouterLink, AsyncPipe, TranslateModule],
 })
 export class ProfilePageComponent {
   readonly vm$: Observable<ProfilePageVm>;
@@ -28,6 +29,7 @@ export class ProfilePageComponent {
     private readonly route: ActivatedRoute,
     private readonly profileService: ProfileService,
     private readonly authService: AuthService,
+    private readonly translateService: TranslateService,
   ) {
     this.vm$ = this.route.paramMap.pipe(
       switchMap((params) => {
@@ -57,7 +59,7 @@ export class ProfilePageComponent {
           return of({
             loading: false,
             showSettingsLink: false,
-            errorMessage: 'Invalid profile id.',
+            errorMessage: this.translateService.instant('profile.messages.invalidId'),
           } satisfies ProfilePageVm);
         }
 
@@ -84,19 +86,21 @@ export class ProfilePageComponent {
   }
 
   toLanguageLine(languages: string[]): string {
-    return languages.length > 0 ? languages.join(', ') : 'Not specified';
+    return languages.length > 0
+      ? languages.join(', ')
+      : this.translateService.instant('profile.common.notSpecified');
   }
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 404) {
-        return 'Profile not found or not accessible.';
+        return this.translateService.instant('profile.messages.notFound');
       }
       if (error.status === 401) {
-        return 'Please sign in to view your profile.';
+        return this.translateService.instant('profile.messages.signInRequired');
       }
-      return error.error?.message ?? 'Unable to load profile.';
+      return error.error?.message ?? this.translateService.instant('profile.messages.loadFailed');
     }
-    return 'Unable to load profile.';
+    return this.translateService.instant('profile.messages.loadFailed');
   }
 }

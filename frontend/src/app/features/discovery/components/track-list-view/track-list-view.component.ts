@@ -1,6 +1,7 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, Component} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {
   catchError,
   combineLatest,
@@ -35,7 +36,7 @@ import {
 
 interface FeatureToggleDefinition {
   key: TrackFeature;
-  label: string;
+  labelKey: string;
 }
 
 interface TrackListViewModel {
@@ -65,6 +66,7 @@ type FiltersFormGroup = FormGroup<{
     RouterLink,
     AsyncPipe,
     UpperCasePipe,
+    TranslateModule,
     ErpPaginationComponent,
     MultiAutocompleteFilterComponent,
   ],
@@ -77,13 +79,13 @@ export class TrackListViewComponent {
   ];
 
   readonly featureToggles: FeatureToggleDefinition[] = [
-    {key: 'setups', label: 'Setups'},
-    {key: 'leaderboard', label: 'Leaderboard'},
-    {key: 'ai', label: 'AI Curve'},
+    {key: 'setups', labelKey: 'discovery.badges.setups'},
+    {key: 'leaderboard', labelKey: 'discovery.badges.leaderboard'},
+    {key: 'ai', labelKey: 'discovery.badges.aiCurve'},
   ];
   readonly featureFilterOptions: MultiFilterOption[] = this.featureToggles.map((toggle) => ({
     value: toggle.key,
-    label: toggle.label,
+    label: toggle.labelKey,
   }));
 
   readonly gameControl: FormControl<string>;
@@ -117,7 +119,10 @@ export class TrackListViewComponent {
     errorMessage?: string;
   }>;
 
-  constructor(private readonly trackDiscoveryService: TrackDiscoveryService) {
+  constructor(
+    private readonly trackDiscoveryService: TrackDiscoveryService,
+    private readonly translateService: TranslateService,
+  ) {
     this.gameControl = new FormControl(this.gameOptions[0].code, {nonNullable: true});
     this.sortControl = new FormControl<TrackSort>('name', {nonNullable: true});
     this.filtersForm = new FormGroup({
@@ -342,9 +347,12 @@ export class TrackListViewComponent {
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       if (error.status === 404) {
-        return 'Tracks were not found for this game. Try another title or refresh.';
+        return this.translateService.instant('discovery.messages.notFound');
       }
-      return error.error?.message ?? `Discovery API unavailable (status ${error.status}).`;
+      return (
+        error.error?.message ??
+        this.translateService.instant('discovery.messages.apiUnavailable', {status: error.status})
+      );
     }
 
     if (typeof error === 'string') {
@@ -360,6 +368,6 @@ export class TrackListViewComponent {
       return error.message;
     }
 
-    return 'The discovery catalog is unavailable right now. Please retry in a moment.';
+    return this.translateService.instant('discovery.messages.unavailable');
   }
 }

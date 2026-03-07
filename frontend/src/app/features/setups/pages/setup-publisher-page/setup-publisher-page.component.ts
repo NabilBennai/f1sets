@@ -1,13 +1,18 @@
 import {HttpErrorResponse} from '@angular/common/http';
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {FormControl, FormGroup, Validators, ReactiveFormsModule, FormsModule} from '@angular/forms';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {debounceTime, distinctUntilChanged, map} from 'rxjs/operators';
 import {forkJoin} from 'rxjs';
 import {AuthService} from '../../../auth/data-access/auth.service';
 import {TrackDiscoveryService} from '../../../discovery/data-access/track-discovery.service';
 import {SetupService} from '../../data-access/setup.service';
-import {SetupFieldDefinition, SetupItem} from '../../models/setup.models';
+import {
+  AiDifficultyCalculationResponse,
+  SetupFieldDefinition,
+  SetupItem,
+} from '../../models/setup.models';
 import {TrackAutocompleteOption} from '../../../../shared/components/track-autocomplete-input/track-autocomplete-input.component';
 import {UpperCasePipe, DatePipe} from '@angular/common';
 import {ErpPaginationComponent} from '../../../../shared/components/erp-pagination/erp-pagination.component';
@@ -17,6 +22,8 @@ import {
 } from '../../../../shared/components/multi-autocomplete-filter/multi-autocomplete-filter.component';
 
 type PublishFormGroup = FormGroup<{
+  gameCode: FormControl<string>;
+  trackSlug: FormControl<string>;
   title: FormControl<string>;
   notes: FormControl<string>;
   sessionType: FormControl<string>;
@@ -33,6 +40,35 @@ type SearchFormGroup = FormGroup<{
   query: FormControl<string>;
 }>;
 
+type AiDifficultyFormGroup = FormGroup<{
+  lapTime: FormControl<string>;
+}>;
+
+type SetupLibraryView = 'all' | 'mine' | 'favorites';
+
+interface SetupLocalComment {
+  id: number;
+  setupId: number;
+  author: string;
+  text: string;
+  createdAt: string;
+}
+
+type SetupSortOption = 'title' | 'score' | 'newest';
+
+interface SetupFilterPreset {
+  id: string;
+  name: string;
+  gameFilters: string[];
+  trackFilters: string[];
+  sessionFilters: string[];
+  weatherFilters: string[];
+  inputFilters: string[];
+  query: string;
+  libraryView: SetupLibraryView;
+  sortOption: SetupSortOption;
+}
+
 @Component({
   selector: 'app-setup-publisher-page',
   templateUrl: './setup-publisher-page.component.html',
@@ -41,6 +77,7 @@ type SearchFormGroup = FormGroup<{
   imports: [
     ReactiveFormsModule,
     FormsModule,
+    TranslateModule,
     UpperCasePipe,
     DatePipe,
     ErpPaginationComponent,
@@ -49,7 +86,13 @@ type SearchFormGroup = FormGroup<{
 })
 export class SetupPublisherPageComponent implements OnInit {
   private static readonly GROUP_SEPARATOR = '||';
+  private readonly favoritesStorageKey = 'f1sets.setups.favorites';
+  private readonly commentsStorageKey = 'f1sets.setups.comments';
+  private readonly filterPresetsStorageKey = 'f1sets.setups.filter-presets';
+  private readonly recentSetupsStorageKey = 'f1sets.setups.recent';
   readonly publishForm: PublishFormGroup = new FormGroup({
+    gameCode: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
+    trackSlug: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
     title: new FormControl('', {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(3)],
@@ -68,10 +111,19 @@ export class SetupPublisherPageComponent implements OnInit {
     trackSlug: new FormControl('', {nonNullable: true}),
     query: new FormControl('', {nonNullable: true}),
   });
+  readonly aiDifficultyForm: AiDifficultyFormGroup = new FormGroup({
+    lapTime: new FormControl('', {nonNullable: true, validators: [Validators.required]}),
+  });
 
   gameCode = '';
   trackSlug = '';
   query = '';
+  aiDifficultyLoading = false;
+  aiDifficultyError = '';
+  aiDifficultyCurveAvailable = false;
+  aiDifficultyCurveVersion: number | null = null;
+  aiDifficultySource: string | null = null;
+  aiDifficultyResult: AiDifficultyCalculationResponse | null = null;
   trackOptions: TrackAutocompleteOption[] = [];
   setupFields: SetupFieldDefinition[] = [];
   readonly setupValuesForm = new FormGroup({});
@@ -98,6 +150,11 @@ export class SetupPublisherPageComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   reportReason = '';
+  newCommentText = '';
+  newPresetName = '';
+  setupLibraryView: SetupLibraryView = 'all';
+  selectedSortOption: SetupSortOption = 'title';
+  filterPresets: SetupFilterPreset[] = [];
   selectedGameFilters: string[] = [];
   selectedTrackFilters: string[] = [];
   selectedSessionFilters: string[] = [];
@@ -105,6 +162,9 @@ export class SetupPublisherPageComponent implements OnInit {
   selectedInputFilters: string[] = [];
   private lastAppliedSearchKey = '';
   private requestedModalSetupId: number | null = null;
+  private pendingSetupValuesPrefill: Record<string, unknown> | null = null;
+  private favoriteSetupIds = new Set<number>();
+  private setupComments: SetupLocalComment[] = [];
 
   readonly sessionOptions = ['race', 'qualifying', 'time-trial'];
   readonly weatherOptions = ['dry', 'mixed', 'wet'];
@@ -114,19 +174,25 @@ export class SetupPublisherPageComponent implements OnInit {
     {value: 'f12024', label: 'EA SPORTS F1 24'},
     {value: 'f12023', label: 'EA SPORTS F1 23'},
   ];
+  publishTrackOptions: TrackAutocompleteOption[] = [];
   trackFilterOptions: MultiFilterOption[] = [];
   readonly sessionFilterOptions: MultiFilterOption[] = this.sessionOptions.map((value) => ({
     value,
-    label: value,
+    label: `setups.enums.session.${value}`,
   }));
   readonly weatherFilterOptions: MultiFilterOption[] = this.weatherOptions.map((value) => ({
     value,
-    label: value,
+    label: `setups.enums.weather.${value}`,
   }));
   readonly inputDeviceFilterOptions: MultiFilterOption[] = this.inputDeviceOptions.map((value) => ({
     value,
-    label: value,
+    label: `setups.enums.input.${value}`,
   }));
+  readonly sortOptions: Array<{value: SetupSortOption; labelKey: string}> = [
+    {value: 'title', labelKey: 'setups.sort.options.title'},
+    {value: 'score', labelKey: 'setups.sort.options.score'},
+    {value: 'newest', labelKey: 'setups.sort.options.newest'},
+  ];
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -134,13 +200,23 @@ export class SetupPublisherPageComponent implements OnInit {
     private readonly setupService: SetupService,
     private readonly authService: AuthService,
     private readonly trackDiscoveryService: TrackDiscoveryService,
+    private readonly translateService: TranslateService,
     private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
+    this.loadFavoriteSetupIdsFromStorage();
+    this.loadSetupCommentsFromStorage();
+    this.loadFilterPresetsFromStorage();
+
     this.route.paramMap.subscribe((params) => {
       this.gameCode = (params.get('gameCode') ?? '').toLowerCase();
       this.trackSlug = (params.get('trackSlug') ?? '').toLowerCase();
+      this.aiDifficultyError = '';
+      this.aiDifficultyResult = null;
+      this.aiDifficultyCurveAvailable = false;
+      this.aiDifficultyCurveVersion = null;
+      this.aiDifficultySource = null;
       this.selectedGameFilters = this.gameCode ? [this.gameCode] : [];
       this.selectedTrackFilters = this.trackSlug ? [this.trackSlug] : [];
       this.searchForm.patchValue(
@@ -151,8 +227,17 @@ export class SetupPublisherPageComponent implements OnInit {
         },
         {emitEvent: false},
       );
+      this.publishForm.patchValue(
+        {
+          gameCode: this.gameCode,
+          trackSlug: this.trackSlug,
+        },
+        {emitEvent: false},
+      );
       this.loadTrackOptionsForGames(this.selectedGameFilters);
+      this.loadPublishTrackOptions(this.gameCode, this.trackSlug);
       this.loadSetupFields(this.gameCode);
+      this.loadAiDifficultyCurve();
       this.fetchSetups();
       this.fetchRecommendations();
     });
@@ -181,20 +266,26 @@ export class SetupPublisherPageComponent implements OnInit {
   }
 
   publish(): void {
-    if (this.publishForm.invalid || this.publishing || !this.gameCode || !this.trackSlug) {
+    if (this.publishForm.invalid || this.publishing) {
       this.publishForm.markAllAsTouched();
       return;
     }
 
     const value = this.publishForm.getRawValue();
+    const normalizedGameCode = value.gameCode.trim().toLowerCase();
+    const normalizedTrackSlug = value.trackSlug.trim().toLowerCase();
+    if (!normalizedGameCode || !normalizedTrackSlug) {
+      this.publishForm.markAllAsTouched();
+      return;
+    }
     this.publishing = true;
     this.errorMessage = '';
     this.successMessage = '';
 
     this.setupService
       .publishSetup({
-        gameCode: this.gameCode,
-        trackSlug: this.trackSlug,
+        gameCode: normalizedGameCode,
+        trackSlug: normalizedTrackSlug,
         title: value.title.trim(),
         notes: value.notes.trim() || null,
         sessionType: value.sessionType || null,
@@ -210,7 +301,7 @@ export class SetupPublisherPageComponent implements OnInit {
           this.publishing = false;
           this.setups = [setup, ...this.setups];
           this.rebuildSetupTree();
-          this.successMessage = 'Setup published.';
+          this.successMessage = this.translateService.instant('setups.messages.published');
           this.publishModalOpen = false;
           this.publishForm.patchValue({title: '', notes: '', fuelLoadKg: null});
           this.rebuildSetupValuesForm(this.setupFields);
@@ -226,7 +317,71 @@ export class SetupPublisherPageComponent implements OnInit {
   }
 
   openPublishModal(): void {
+    const preferredGameCode =
+      this.publishForm.controls.gameCode.getRawValue().trim().toLowerCase() ||
+      this.gameCode ||
+      this.selectedGameFilters[0] ||
+      this.gameFilterOptions[0]?.value ||
+      '';
+    const preferredTrackSlug =
+      this.publishForm.controls.trackSlug.getRawValue().trim().toLowerCase() ||
+      this.trackSlug ||
+      '';
+    this.publishForm.patchValue(
+      {
+        gameCode: preferredGameCode,
+        trackSlug: preferredTrackSlug,
+      },
+      {emitEvent: false},
+    );
+    this.loadPublishTrackOptions(preferredGameCode, preferredTrackSlug);
+    this.loadSetupFields(preferredGameCode);
     this.publishModalOpen = true;
+  }
+
+  onPublishGameChange(gameCode: string): void {
+    const normalizedGameCode = gameCode.trim().toLowerCase();
+    this.publishForm.controls.gameCode.setValue(normalizedGameCode, {emitEvent: false});
+    this.publishForm.controls.trackSlug.setValue('', {emitEvent: false});
+    this.loadPublishTrackOptions(normalizedGameCode, '');
+    this.loadSetupFields(normalizedGameCode);
+  }
+
+  onPublishTrackChange(trackSlug: string): void {
+    this.publishForm.controls.trackSlug.setValue(trackSlug.trim().toLowerCase(), {
+      emitEvent: false,
+    });
+  }
+
+  calculateAiDifficulty(): void {
+    if (this.aiDifficultyLoading || !this.gameCode || !this.trackSlug) {
+      return;
+    }
+
+    const lapTimeInput = this.aiDifficultyForm.controls.lapTime.getRawValue();
+    const lapTimeMs = this.parseLapTimeToMs(lapTimeInput);
+    if (lapTimeMs === null) {
+      this.aiDifficultyError = this.translateService.instant('setups.ai.invalidLapTime');
+      this.aiDifficultyResult = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.aiDifficultyLoading = true;
+    this.aiDifficultyError = '';
+    this.aiDifficultyResult = null;
+    this.setupService.calculateAiDifficulty(this.gameCode, this.trackSlug, {lapTimeMs}).subscribe({
+      next: (result) => {
+        this.aiDifficultyLoading = false;
+        this.aiDifficultyResult = result;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.aiDifficultyLoading = false;
+        this.aiDifficultyError = this.resolveErrorMessage(error);
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   closePublishModal(): void {
@@ -235,6 +390,203 @@ export class SetupPublisherPageComponent implements OnInit {
 
   applySearch(): void {
     this.runSearchFromForm();
+  }
+
+  get publishReadinessChecks(): Array<{labelKey: string; done: boolean}> {
+    const formValue = this.publishForm.getRawValue();
+    const hasSetupFieldValues = Object.values(this.setupValuesForm.getRawValue()).some((value) => {
+      if (typeof value === 'boolean') {
+        return value;
+      }
+      if (typeof value === 'number') {
+        return Number.isFinite(value);
+      }
+      if (typeof value === 'string') {
+        return value.trim().length > 0;
+      }
+      return value !== null && value !== undefined;
+    });
+
+    return [
+      {
+        labelKey: 'setups.automation.checks.targetTrack',
+        done: Boolean(formValue.gameCode.trim() && formValue.trackSlug.trim()),
+      },
+      {
+        labelKey: 'setups.automation.checks.title',
+        done: formValue.title.trim().length >= 3,
+      },
+      {
+        labelKey: 'setups.automation.checks.schema',
+        done: this.setupFields.length > 0,
+      },
+      {
+        labelKey: 'setups.automation.checks.values',
+        done: hasSetupFieldValues,
+      },
+    ];
+  }
+
+  get publishReadinessPercent(): number {
+    if (this.publishReadinessChecks.length === 0) {
+      return 0;
+    }
+    const completed = this.publishReadinessChecks.filter((check) => check.done).length;
+    return Math.round((completed / this.publishReadinessChecks.length) * 100);
+  }
+
+  setLibraryView(view: SetupLibraryView): void {
+    if (view === 'mine' && !this.authService.isAuthenticated()) {
+      this.errorMessage = this.translateService.instant('setups.messages.signInRequiredForMine');
+      this.cdr.markForCheck();
+      return;
+    }
+    this.setupLibraryView = view;
+    this.rebuildSetupTree();
+  }
+
+  setSortOption(option: SetupSortOption): void {
+    this.selectedSortOption = option;
+    this.rebuildSetupTree();
+  }
+
+  libraryViewLabelKey(view: SetupLibraryView): string {
+    return `setups.library.views.${view}`;
+  }
+
+  get libraryAllCount(): number {
+    return this.setups.length;
+  }
+
+  get libraryMineCount(): number {
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      return 0;
+    }
+    return this.setups.filter((setup) => setup.userId === currentUser.id).length;
+  }
+
+  get libraryFavoritesCount(): number {
+    return this.setups.filter((setup) => this.favoriteSetupIds.has(setup.id)).length;
+  }
+
+  get visibleSetupItems(): SetupItem[] {
+    return this.treeRows
+      .filter((row): row is Extract<SetupTreeRow, {type: 'setup'}> => row.type === 'setup')
+      .map((row) => row.setup);
+  }
+
+  saveCurrentFiltersAsPreset(): void {
+    const presetName = this.newPresetName.trim();
+    if (!presetName) {
+      this.errorMessage = this.translateService.instant('setups.messages.presetNameRequired');
+      this.cdr.markForCheck();
+      return;
+    }
+    const raw = this.searchForm.getRawValue();
+    const preset: SetupFilterPreset = {
+      id: `${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      name: presetName,
+      gameFilters: [...this.selectedGameFilters],
+      trackFilters: [...this.selectedTrackFilters],
+      sessionFilters: [...this.selectedSessionFilters],
+      weatherFilters: [...this.selectedWeatherFilters],
+      inputFilters: [...this.selectedInputFilters],
+      query: raw.query.trim(),
+      libraryView: this.setupLibraryView,
+      sortOption: this.selectedSortOption,
+    };
+    this.filterPresets = [preset, ...this.filterPresets].slice(0, 12);
+    this.persistFilterPresets();
+    this.newPresetName = '';
+    this.successMessage = this.translateService.instant('setups.messages.presetSaved');
+    this.cdr.markForCheck();
+  }
+
+  applyFilterPreset(presetId: string): void {
+    const preset = this.filterPresets.find((item) => item.id === presetId);
+    if (!preset) {
+      return;
+    }
+    this.selectedGameFilters = [...preset.gameFilters];
+    this.selectedTrackFilters = [...preset.trackFilters];
+    this.selectedSessionFilters = [...preset.sessionFilters];
+    this.selectedWeatherFilters = [...preset.weatherFilters];
+    this.selectedInputFilters = [...preset.inputFilters];
+    this.setupLibraryView = preset.libraryView;
+    this.selectedSortOption = preset.sortOption;
+    this.searchForm.patchValue(
+      {
+        gameCode: this.selectedGameFilters.length === 1 ? this.selectedGameFilters[0] : '',
+        trackSlug: this.selectedTrackFilters.length === 1 ? this.selectedTrackFilters[0] : '',
+        query: preset.query,
+      },
+      {emitEvent: false},
+    );
+    this.loadTrackOptionsForGames(this.selectedGameFilters);
+    this.runSearchFromForm();
+  }
+
+  deleteFilterPreset(presetId: string): void {
+    this.filterPresets = this.filterPresets.filter((item) => item.id !== presetId);
+    this.persistFilterPresets();
+    this.cdr.markForCheck();
+  }
+
+  exportVisibleSetupsCsv(): void {
+    const visibleSetups = this.visibleSetupItems;
+    if (visibleSetups.length === 0) {
+      this.errorMessage = this.translateService.instant('setups.messages.noRowsToExport');
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const headers = [
+      'id',
+      'gameCode',
+      'trackSlug',
+      'title',
+      'score',
+      'upvotes',
+      'downvotes',
+      'sessionType',
+      'weatherCondition',
+      'inputDevice',
+      'createdAt',
+    ];
+    const escapeCsv = (value: unknown): string => {
+      const raw = value === null || value === undefined ? '' : String(value);
+      return `"${raw.replace(/"/g, '""')}"`;
+    };
+    const rows = visibleSetups.map((setup) =>
+      [
+        setup.id,
+        setup.gameCode,
+        setup.trackSlug,
+        setup.title,
+        setup.score,
+        setup.upvotes,
+        setup.downvotes,
+        setup.sessionType ?? '',
+        setup.weatherCondition ?? '',
+        setup.inputDevice ?? '',
+        setup.createdAt,
+      ]
+        .map(escapeCsv)
+        .join(','),
+    );
+    const csv = `${headers.join(',')}\n${rows.join('\n')}`;
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `setups-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    this.successMessage = this.translateService.instant('setups.messages.csvExported', {
+      count: visibleSetups.length,
+    });
+    this.cdr.markForCheck();
   }
 
   clearSearch(): void {
@@ -299,22 +651,58 @@ export class SetupPublisherPageComponent implements OnInit {
     const tags: Array<{key: string; value: string; label: string}> = [];
     const form = this.searchForm.getRawValue();
     this.selectedGameFilters.forEach((value) =>
-      tags.push({key: 'gameCode', value, label: `Game: ${value.toUpperCase()}`}),
+      tags.push({
+        key: 'gameCode',
+        value,
+        label: this.translateService.instant('setups.filters.tags.game', {
+          value: value.toUpperCase(),
+        }),
+      }),
     );
     this.selectedTrackFilters.forEach((value) =>
-      tags.push({key: 'trackSlug', value, label: `Track: ${value.toUpperCase()}`}),
+      tags.push({
+        key: 'trackSlug',
+        value,
+        label: this.translateService.instant('setups.filters.tags.track', {
+          value: value.toUpperCase(),
+        }),
+      }),
     );
     if (form.query.trim()) {
-      tags.push({key: 'query', value: form.query.trim(), label: `Search: ${form.query.trim()}`});
+      tags.push({
+        key: 'query',
+        value: form.query.trim(),
+        label: this.translateService.instant('setups.filters.tags.search', {
+          value: form.query.trim(),
+        }),
+      });
     }
     this.selectedSessionFilters.forEach((value) =>
-      tags.push({key: 'session', value, label: `Session: ${value}`}),
+      tags.push({
+        key: 'session',
+        value,
+        label: this.translateService.instant('setups.filters.tags.session', {
+          value: this.translateService.instant(`setups.enums.session.${value}`),
+        }),
+      }),
     );
     this.selectedWeatherFilters.forEach((value) =>
-      tags.push({key: 'weather', value, label: `Weather: ${value}`}),
+      tags.push({
+        key: 'weather',
+        value,
+        label: this.translateService.instant('setups.filters.tags.weather', {
+          value: this.translateService.instant(`setups.enums.weather.${value}`),
+        }),
+      }),
     );
     this.selectedInputFilters.forEach((value) =>
-      tags.push({key: 'input', value, label: `Input: ${value}`}),
+      tags.push({
+        key: 'input',
+        value,
+        label: this.translateService.instant('setups.filters.tags.input', {
+          value: this.translateService.instant(`setups.enums.input.${value}`),
+        }),
+      }),
     );
     return tags;
   }
@@ -383,7 +771,7 @@ export class SetupPublisherPageComponent implements OnInit {
 
   beginEdit(setup: SetupItem): void {
     if (this.setupFields.length === 0) {
-      this.errorMessage = 'No setup field schema is available for this game.';
+      this.errorMessage = this.translateService.instant('setups.messages.noSchema');
       this.cdr.markForCheck();
       return;
     }
@@ -401,7 +789,7 @@ export class SetupPublisherPageComponent implements OnInit {
   saveEdit(setup: SetupItem): void {
     const title = this.editTitle.trim();
     if (title.length < 3) {
-      this.errorMessage = 'Title must be at least 3 characters.';
+      this.errorMessage = this.translateService.instant('setups.messages.titleMinLength');
       this.cdr.markForCheck();
       return;
     }
@@ -424,7 +812,7 @@ export class SetupPublisherPageComponent implements OnInit {
         next: (updated) => {
           this.updateSetupInLists(updated);
           this.editingSetupId = null;
-          this.successMessage = 'Setup updated.';
+          this.successMessage = this.translateService.instant('setups.messages.updated');
           this.cdr.markForCheck();
         },
         error: (error) => {
@@ -435,20 +823,30 @@ export class SetupPublisherPageComponent implements OnInit {
   }
 
   deleteSetup(setup: SetupItem): void {
-    if (!window.confirm(`Delete setup "${setup.title}"?`)) {
+    if (
+      !window.confirm(
+        this.translateService.instant('setups.messages.confirmDelete', {
+          title: setup.title,
+        }),
+      )
+    ) {
       return;
     }
     this.deletingSetupId = setup.id;
     this.setupService.deleteSetup(setup.id).subscribe({
       next: () => {
         this.deletingSetupId = null;
+        this.favoriteSetupIds.delete(setup.id);
+        this.persistFavoriteSetupIds();
+        this.setupComments = this.setupComments.filter((comment) => comment.setupId !== setup.id);
+        this.persistSetupComments();
         this.setups = this.setups.filter((item) => item.id !== setup.id);
         this.rebuildSetupTree();
         this.recommendedSetups = this.recommendedSetups.filter((item) => item.id !== setup.id);
         if (this.selectedSetup?.id === setup.id) {
           this.closeSetupModal();
         }
-        this.successMessage = 'Setup deleted.';
+        this.successMessage = this.translateService.instant('setups.messages.deleted');
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -482,10 +880,12 @@ export class SetupPublisherPageComponent implements OnInit {
   formatSetupValue(setup: SetupItem, field: SetupFieldDefinition): string {
     const value = setup.setupValues?.[field.fieldKey];
     if (value === null || value === undefined || value === '') {
-      return '-';
+      return this.translateService.instant('common.notAvailable');
     }
     if (field.fieldType === 'BOOLEAN') {
-      return Boolean(value) ? 'Yes' : 'No';
+      return Boolean(value)
+        ? this.translateService.instant('common.yes')
+        : this.translateService.instant('common.no');
     }
     return String(value);
   }
@@ -494,6 +894,8 @@ export class SetupPublisherPageComponent implements OnInit {
     this.selectedSetup = setup;
     this.editingSetupId = null;
     this.compareSetupId = null;
+    this.newCommentText = '';
+    this.recordRecentSetup(setup);
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {setupId: setup.id},
@@ -506,6 +908,7 @@ export class SetupPublisherPageComponent implements OnInit {
     this.selectedSetup = null;
     this.editingSetupId = null;
     this.compareSetupId = null;
+    this.newCommentText = '';
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: {setupId: null},
@@ -534,20 +937,82 @@ export class SetupPublisherPageComponent implements OnInit {
     });
   }
 
+  isFavorite(setup: SetupItem | number): boolean {
+    const setupId = typeof setup === 'number' ? setup : setup.id;
+    return this.favoriteSetupIds.has(setupId);
+  }
+
+  toggleFavorite(setup: SetupItem, event?: Event): void {
+    event?.stopPropagation();
+    if (this.favoriteSetupIds.has(setup.id)) {
+      this.favoriteSetupIds.delete(setup.id);
+      this.successMessage = this.translateService.instant('setups.messages.removedFromFavorites');
+    } else {
+      this.favoriteSetupIds.add(setup.id);
+      this.successMessage = this.translateService.instant('setups.messages.addedToFavorites');
+    }
+    this.persistFavoriteSetupIds();
+    this.rebuildSetupTree();
+    this.cdr.markForCheck();
+  }
+
+  getSetupCommentCount(setupId: number): number {
+    return this.setupComments.filter((comment) => comment.setupId === setupId).length;
+  }
+
+  get selectedSetupComments(): SetupLocalComment[] {
+    if (!this.selectedSetup) {
+      return [];
+    }
+    return this.setupComments
+      .filter((comment) => comment.setupId === this.selectedSetup?.id)
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+  }
+
+  addCommentToSelectedSetup(): void {
+    if (!this.selectedSetup) {
+      return;
+    }
+    const text = this.newCommentText.trim();
+    if (!text) {
+      return;
+    }
+    const currentUser = this.authService.getCurrentUser();
+    const nextComment: SetupLocalComment = {
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      setupId: this.selectedSetup.id,
+      author:
+        currentUser?.displayName ?? this.translateService.instant('setups.collab.guestAuthor'),
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    this.setupComments = [nextComment, ...this.setupComments];
+    this.persistSetupComments();
+    this.newCommentText = '';
+    this.successMessage = this.translateService.instant('setups.messages.commentAdded');
+    this.cdr.markForCheck();
+  }
+
+  deleteComment(commentId: number): void {
+    this.setupComments = this.setupComments.filter((comment) => comment.id !== commentId);
+    this.persistSetupComments();
+    this.cdr.markForCheck();
+  }
+
   reportSelectedSetup(): void {
     if (!this.selectedSetup) {
       return;
     }
     const reason = this.reportReason.trim();
     if (!reason) {
-      this.errorMessage = 'Please provide a report reason.';
+      this.errorMessage = this.translateService.instant('setups.messages.reportReasonRequired');
       this.cdr.markForCheck();
       return;
     }
     this.setupService.reportSetup(this.selectedSetup.id, reason).subscribe({
       next: () => {
         this.reportReason = '';
-        this.successMessage = 'Setup reported. Thank you.';
+        this.successMessage = this.translateService.instant('setups.messages.reported');
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -561,14 +1026,14 @@ export class SetupPublisherPageComponent implements OnInit {
     if (!this.selectedSetup) {
       return;
     }
-    const reason = window.prompt('Hide reason:');
+    const reason = window.prompt(this.translateService.instant('setups.messages.hideReasonPrompt'));
     if (!reason) {
       return;
     }
     this.setupService.hideSetup(this.selectedSetup.id, reason).subscribe({
       next: (updated) => {
         this.updateSetupInLists(updated);
-        this.successMessage = 'Setup hidden.';
+        this.successMessage = this.translateService.instant('setups.messages.hidden');
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -585,7 +1050,7 @@ export class SetupPublisherPageComponent implements OnInit {
     this.setupService.unhideSetup(this.selectedSetup.id).subscribe({
       next: (updated) => {
         this.updateSetupInLists(updated);
-        this.successMessage = 'Setup unhidden.';
+        this.successMessage = this.translateService.instant('setups.messages.unhidden');
         this.cdr.markForCheck();
       },
       error: (error) => {
@@ -603,11 +1068,11 @@ export class SetupPublisherPageComponent implements OnInit {
     navigator.clipboard
       .writeText(url)
       .then(() => {
-        this.successMessage = 'Share link copied.';
+        this.successMessage = this.translateService.instant('setups.messages.shareLinkCopied');
         this.cdr.markForCheck();
       })
       .catch(() => {
-        this.errorMessage = 'Could not copy share link.';
+        this.errorMessage = this.translateService.instant('setups.messages.shareLinkCopyFailed');
         this.cdr.markForCheck();
       });
   }
@@ -634,6 +1099,35 @@ export class SetupPublisherPageComponent implements OnInit {
     link.download = `${this.selectedSetup.gameCode}-${this.selectedSetup.trackSlug}-${this.selectedSetup.id}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  duplicateSelectedSetupToDraft(): void {
+    if (!this.selectedSetup) {
+      return;
+    }
+    const setup = this.selectedSetup;
+    this.pendingSetupValuesPrefill = {...(setup.setupValues ?? {})};
+    this.publishForm.patchValue(
+      {
+        gameCode: setup.gameCode,
+        trackSlug: setup.trackSlug,
+        title: `${setup.title} (Copy)`,
+        notes: setup.notes ?? '',
+        sessionType: setup.sessionType ?? 'race',
+        weatherCondition: setup.weatherCondition ?? 'dry',
+        assistsPreset: setup.assistsPreset ?? 'full',
+        inputDevice: setup.inputDevice ?? 'wheel',
+        fuelLoadKg: setup.fuelLoadKg,
+        tyreCompound: setup.tyreCompound ?? 'medium',
+      },
+      {emitEvent: false},
+    );
+    this.loadPublishTrackOptions(setup.gameCode, setup.trackSlug);
+    this.loadSetupFields(setup.gameCode);
+    this.closeSetupModal();
+    this.openPublishModal();
+    this.successMessage = this.translateService.instant('setups.messages.duplicatedToDraft');
+    this.cdr.markForCheck();
   }
 
   importSetupFile(event: Event): void {
@@ -674,9 +1168,9 @@ export class SetupPublisherPageComponent implements OnInit {
           }
           control.setValue(values[field.fieldKey] ?? this.getDefaultFieldValue(field));
         });
-        this.successMessage = 'Setup imported into publish form.';
+        this.successMessage = this.translateService.instant('setups.messages.imported');
       } catch {
-        this.errorMessage = 'Invalid setup file.';
+        this.errorMessage = this.translateService.instant('setups.messages.invalidSetupFile');
       }
       this.cdr.markForCheck();
     };
@@ -821,6 +1315,43 @@ export class SetupPublisherPageComponent implements OnInit {
     });
   }
 
+  private loadPublishTrackOptions(gameCode: string, preferredTrackSlug: string): void {
+    const normalizedGameCode = (gameCode ?? '').trim().toLowerCase();
+    const normalizedPreferredTrack = (preferredTrackSlug ?? '').trim().toLowerCase();
+    if (!normalizedGameCode) {
+      this.publishTrackOptions = [];
+      this.publishForm.controls.trackSlug.setValue('', {emitEvent: false});
+      this.cdr.markForCheck();
+      return;
+    }
+    this.trackDiscoveryService.getTracks(normalizedGameCode, {size: 100, page: 0}).subscribe({
+      next: (response) => {
+        this.publishTrackOptions = response.tracks.map((track) => ({
+          slug: track.slug,
+          label: `${track.grandPrixName ?? track.slug} (${track.slug})`,
+        }));
+        const availableTrackSlugs = new Set(this.publishTrackOptions.map((option) => option.slug));
+        const currentTrackSlug = this.publishForm.controls.trackSlug
+          .getRawValue()
+          .trim()
+          .toLowerCase();
+        const nextTrackSlug =
+          (normalizedPreferredTrack && availableTrackSlugs.has(normalizedPreferredTrack)
+            ? normalizedPreferredTrack
+            : currentTrackSlug && availableTrackSlugs.has(currentTrackSlug)
+              ? currentTrackSlug
+              : this.publishTrackOptions[0]?.slug) ?? '';
+        this.publishForm.controls.trackSlug.setValue(nextTrackSlug, {emitEvent: false});
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.publishTrackOptions = [];
+        this.publishForm.controls.trackSlug.setValue('', {emitEvent: false});
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   private loadSetupFields(gameCode: string): void {
     const normalizedGameCode = (gameCode ?? '').trim().toLowerCase();
     if (!normalizedGameCode) {
@@ -834,11 +1365,40 @@ export class SetupPublisherPageComponent implements OnInit {
       next: (fields) => {
         this.setupFields = fields;
         this.rebuildSetupValuesForm(fields);
+        if (this.pendingSetupValuesPrefill) {
+          this.applyValuesToForm(this.setupValuesForm, this.pendingSetupValuesPrefill);
+          this.pendingSetupValuesPrefill = null;
+        }
         this.cdr.markForCheck();
       },
       error: () => {
         this.setupFields = [];
         this.rebuildSetupValuesForm([]);
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private loadAiDifficultyCurve(): void {
+    if (!this.gameCode || !this.trackSlug) {
+      this.aiDifficultyCurveAvailable = false;
+      this.aiDifficultyCurveVersion = null;
+      this.aiDifficultySource = null;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.setupService.getAiDifficultyCurve(this.gameCode, this.trackSlug).subscribe({
+      next: (curve) => {
+        this.aiDifficultyCurveAvailable = true;
+        this.aiDifficultyCurveVersion = curve.curveVersion ?? null;
+        this.aiDifficultySource = curve.source ?? null;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.aiDifficultyCurveAvailable = false;
+        this.aiDifficultyCurveVersion = null;
+        this.aiDifficultySource = null;
         this.cdr.markForCheck();
       },
     });
@@ -925,6 +1485,19 @@ export class SetupPublisherPageComponent implements OnInit {
     return field.fieldType === 'BOOLEAN' ? false : '';
   }
 
+  private applyValuesToForm(form: FormGroup, values: Record<string, unknown>): void {
+    this.setupFields.forEach((field) => {
+      const control = form.get(field.fieldKey) as FormControl | null;
+      if (!control) {
+        return;
+      }
+      const value = values[field.fieldKey];
+      control.setValue(
+        value === null || value === undefined ? this.getDefaultFieldValue(field) : value,
+      );
+    });
+  }
+
   private updateSetupInLists(updated: SetupItem): void {
     this.setups = this.setups.map((item) => (item.id === updated.id ? updated : item));
     this.recommendedSetups = this.recommendedSetups.map((item) =>
@@ -948,9 +1521,45 @@ export class SetupPublisherPageComponent implements OnInit {
 
   private resolveErrorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
-      return error.error?.message ?? `Request failed (status ${error.status}).`;
+      return (
+        error.error?.message ??
+        this.translateService.instant('common.requestFailedWithStatus', {status: error.status})
+      );
     }
-    return 'Request failed.';
+    return this.translateService.instant('common.requestFailed');
+  }
+
+  private parseLapTimeToMs(rawValue: string): number | null {
+    const value = rawValue.trim().replace(',', '.');
+    if (!value) {
+      return null;
+    }
+
+    const minuteSecondPattern = /^(\d+):([0-5]?\d)(?:\.(\d{1,3}))?$/;
+    const secondsPattern = /^(\d+)(?:\.(\d{1,3}))?$/;
+
+    const minuteSecondMatch = value.match(minuteSecondPattern);
+    if (minuteSecondMatch) {
+      const minutes = Number(minuteSecondMatch[1]);
+      const seconds = Number(minuteSecondMatch[2]);
+      const milliseconds =
+        minuteSecondMatch[3] === undefined
+          ? 0
+          : Number(minuteSecondMatch[3].padEnd(3, '0').slice(0, 3));
+      const totalMs = minutes * 60_000 + seconds * 1000 + milliseconds;
+      return totalMs > 0 ? totalMs : null;
+    }
+
+    const secondsMatch = value.match(secondsPattern);
+    if (secondsMatch) {
+      const seconds = Number(secondsMatch[1]);
+      const milliseconds =
+        secondsMatch[2] === undefined ? 0 : Number(secondsMatch[2].padEnd(3, '0').slice(0, 3));
+      const totalMs = seconds * 1000 + milliseconds;
+      return totalMs > 0 ? totalMs : null;
+    }
+
+    return null;
   }
 
   private ensureInitialGroupExpansion(): void {
@@ -973,7 +1582,9 @@ export class SetupPublisherPageComponent implements OnInit {
 
   private rebuildSetupTree(): void {
     const rows: SetupTreeRow[] = [];
-    const filtered = this.setups.filter((setup) => this.matchesMultiFilters(setup));
+    const filtered = this.setups.filter(
+      (setup) => this.matchesLibraryFilter(setup) && this.matchesMultiFilters(setup),
+    );
     this.filteredSetups = filtered.length;
     const sorted = [...filtered].sort((left, right) => {
       const gameSort = this.compareText(left.gameCode, right.gameCode);
@@ -987,6 +1598,16 @@ export class SetupPublisherPageComponent implements OnInit {
         right.weatherCondition ?? '',
       );
       if (weatherSort !== 0) return weatherSort;
+      if (this.selectedSortOption === 'score') {
+        const scoreSort = right.score - left.score;
+        if (scoreSort !== 0) return scoreSort;
+      } else if (this.selectedSortOption === 'newest') {
+        const leftTime = Date.parse(left.createdAt);
+        const rightTime = Date.parse(right.createdAt);
+        if (leftTime !== rightTime) {
+          return rightTime - leftTime;
+        }
+      }
       return this.compareText(left.title, right.title);
     });
 
@@ -1096,6 +1717,82 @@ export class SetupPublisherPageComponent implements OnInit {
     return gameMatch && trackMatch && sessionMatch && weatherMatch && inputMatch;
   }
 
+  private matchesLibraryFilter(setup: SetupItem): boolean {
+    if (this.setupLibraryView === 'all') {
+      return true;
+    }
+    if (this.setupLibraryView === 'favorites') {
+      return this.favoriteSetupIds.has(setup.id);
+    }
+    const currentUser = this.authService.getCurrentUser();
+    if (!currentUser) {
+      return false;
+    }
+    return setup.userId === currentUser.id;
+  }
+
+  private loadFavoriteSetupIdsFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(this.favoritesStorageKey);
+      if (!raw) {
+        this.favoriteSetupIds = new Set<number>();
+        return;
+      }
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        this.favoriteSetupIds = new Set<number>();
+        return;
+      }
+      const nextIds = parsed.filter((item) => typeof item === 'number') as number[];
+      this.favoriteSetupIds = new Set<number>(nextIds);
+    } catch {
+      this.favoriteSetupIds = new Set<number>();
+    }
+  }
+
+  private persistFavoriteSetupIds(): void {
+    localStorage.setItem(this.favoritesStorageKey, JSON.stringify([...this.favoriteSetupIds]));
+  }
+
+  private loadSetupCommentsFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(this.commentsStorageKey);
+      if (!raw) {
+        this.setupComments = [];
+        return;
+      }
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        this.setupComments = [];
+        return;
+      }
+      this.setupComments = parsed
+        .filter(
+          (item): item is SetupLocalComment =>
+            typeof item === 'object' &&
+            item !== null &&
+            typeof (item as SetupLocalComment).id === 'number' &&
+            typeof (item as SetupLocalComment).setupId === 'number' &&
+            typeof (item as SetupLocalComment).author === 'string' &&
+            typeof (item as SetupLocalComment).text === 'string' &&
+            typeof (item as SetupLocalComment).createdAt === 'string',
+        )
+        .map((item) => ({
+          id: item.id,
+          setupId: item.setupId,
+          author: item.author,
+          text: item.text,
+          createdAt: item.createdAt,
+        }));
+    } catch {
+      this.setupComments = [];
+    }
+  }
+
+  private persistSetupComments(): void {
+    localStorage.setItem(this.commentsStorageKey, JSON.stringify(this.setupComments));
+  }
+
   private normalizeGroupValue(value: string | null | undefined, fallback: string): string {
     const normalized = (value ?? '').trim();
     return normalized.length > 0 ? normalized : fallback;
@@ -1103,6 +1800,65 @@ export class SetupPublisherPageComponent implements OnInit {
 
   private compareText(left: string | null | undefined, right: string | null | undefined): number {
     return (left ?? '').localeCompare(right ?? '', undefined, {sensitivity: 'base'});
+  }
+
+  private loadFilterPresetsFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(this.filterPresetsStorageKey);
+      if (!raw) {
+        this.filterPresets = [];
+        return;
+      }
+      const parsed = JSON.parse(raw) as unknown;
+      if (!Array.isArray(parsed)) {
+        this.filterPresets = [];
+        return;
+      }
+      this.filterPresets = parsed
+        .filter(
+          (item): item is SetupFilterPreset =>
+            typeof item === 'object' &&
+            item !== null &&
+            typeof (item as SetupFilterPreset).id === 'string' &&
+            typeof (item as SetupFilterPreset).name === 'string' &&
+            Array.isArray((item as SetupFilterPreset).gameFilters) &&
+            Array.isArray((item as SetupFilterPreset).trackFilters) &&
+            Array.isArray((item as SetupFilterPreset).sessionFilters) &&
+            Array.isArray((item as SetupFilterPreset).weatherFilters) &&
+            Array.isArray((item as SetupFilterPreset).inputFilters) &&
+            typeof (item as SetupFilterPreset).query === 'string' &&
+            ['all', 'mine', 'favorites'].includes((item as SetupFilterPreset).libraryView) &&
+            ['title', 'score', 'newest'].includes((item as SetupFilterPreset).sortOption),
+        )
+        .slice(0, 12);
+    } catch {
+      this.filterPresets = [];
+    }
+  }
+
+  private persistFilterPresets(): void {
+    localStorage.setItem(this.filterPresetsStorageKey, JSON.stringify(this.filterPresets));
+  }
+
+  private recordRecentSetup(setup: SetupItem): void {
+    try {
+      const raw = localStorage.getItem(this.recentSetupsStorageKey);
+      const current = raw ? (JSON.parse(raw) as Array<Record<string, unknown>>) : [];
+      const nextEntry = {
+        id: setup.id,
+        title: setup.title,
+        gameCode: setup.gameCode,
+        trackSlug: setup.trackSlug,
+        openedAt: new Date().toISOString(),
+      };
+      const next = [nextEntry, ...current.filter((item) => Number(item['id']) !== setup.id)].slice(
+        0,
+        10,
+      );
+      localStorage.setItem(this.recentSetupsStorageKey, JSON.stringify(next));
+    } catch {
+      // Ignore localStorage failures.
+    }
   }
 }
 
