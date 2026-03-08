@@ -30,6 +30,12 @@ const routes: Routes = [
     loadChildren: () => import('./features/setups/setups.module').then((m) => m.SetupsModule),
   },
   {
+    path: 'friends-chat',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./features/friends-chat/friends-chat.module').then((m) => m.FriendsChatModule),
+  },
+  {
     path: 'admin/tracks',
     canActivate: [authGuard, adminGuard],
     loadChildren: () =>

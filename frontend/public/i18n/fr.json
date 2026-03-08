@@ -39,6 +39,7 @@
     "home": "Accueil",
     "trackCatalog": "Catalogue des circuits",
     "setups": "Setups",
+    "friendsChat": "Amis & chat",
     "aiDifficulty": "Difficulté IA",
     "admin": "Admin",
     "adminTracks": "Circuits",
@@ -463,6 +464,56 @@
       "notFound": "Profil introuvable.",
       "invalidId": "Identifiant de profil invalide.",
       "signInRequired": "Connexion requise pour voir ce profil."
+    }
+  },
+  "friendsChat": {
+    "widget": {
+      "title": "Messages",
+      "subtitle": "Selectionnez un ami pour ouvrir une conversation",
+      "toggle": "Basculer le widget de chat",
+      "backToList": "Retour a la liste d'amis",
+      "openFullPage": "Ouvrir la page chat complete"
+    },
+    "sidebar": {
+      "title": "Amis",
+      "searchPlaceholder": "Rechercher des utilisateurs",
+      "noSearchResults": "Aucun utilisateur trouvé.",
+      "incomingRequests": "Demandes reçues",
+      "outgoingRequests": "Demandes envoyées",
+      "noIncomingRequests": "Aucune demande reçue.",
+      "noOutgoingRequests": "Aucune demande envoyée.",
+      "friends": "Liste d'amis",
+      "noFriends": "Aucun ami pour le moment. Ajoutez des utilisateurs pour discuter."
+    },
+    "chat": {
+      "live": "En direct",
+      "selectFriend": "Sélectionnez un ami pour commencer la discussion.",
+      "noMessages": "Aucun message pour le moment.",
+      "inputPlaceholder": "Écrivez votre message...",
+      "sentMark": "Envoyé",
+      "readMark": "Lu"
+    },
+    "actions": {
+      "add": "Ajouter",
+      "accept": "Accepter",
+      "reject": "Refuser",
+      "send": "Envoyer",
+      "removeFriend": "Retirer l'ami"
+    },
+    "messages": {
+      "loadFriendsFailed": "Impossible de charger les amis.",
+      "loadRequestsFailed": "Impossible de charger les demandes d'amis.",
+      "searchFailed": "Impossible de rechercher des utilisateurs.",
+      "requestSent": "Demande d'ami envoyée.",
+      "requestFailed": "Impossible d'envoyer la demande d'ami.",
+      "requestAccepted": "Demande d'ami acceptée.",
+      "requestRejected": "Demande d'ami refusée.",
+      "requestActionFailed": "Impossible de traiter la demande d'ami.",
+      "friendRemoved": "Ami retiré.",
+      "friendRemoveFailed": "Impossible de retirer cet ami.",
+      "loadMessagesFailed": "Impossible de charger l'historique des messages.",
+      "socketNotConnected": "La connexion chat n'est pas prête.",
+      "confirmRemoveFriend": "Retirer {{name}} de vos amis ?"
     }
   },
   "setups": {

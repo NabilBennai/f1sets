@@ -8,6 +8,7 @@ import {AppLanguage, LanguageService} from '../../../core/i18n/language.service'
 import {ThemeService} from '../../../core/theme/theme.service';
 import {AuthUser} from '../../../features/auth/data-access/auth.models';
 import {AuthService} from '../../../features/auth/data-access/auth.service';
+import {ChatNotificationService} from '../../../features/friends-chat/data-access/chat-notification.service';
 import {ProfileService} from '../../../features/profile/data-access/profile.service';
 
 @Component({
@@ -23,6 +24,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   readonly currentTheme$: Observable<string>;
   readonly languages: readonly AppLanguage[];
   readonly currentLanguage$: Observable<AppLanguage>;
+  readonly unreadChatCount$: Observable<number>;
   readonly themeDominantColors: Record<string, string> = {
     light: '#570df8',
     dark: '#793ef9',
@@ -74,12 +76,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly themeService: ThemeService,
     private readonly languageService: LanguageService,
+    private readonly chatNotificationService: ChatNotificationService,
   ) {
     this.user$ = this.authService.user$;
     this.themes = this.themeService.themes;
     this.currentTheme$ = this.themeService.currentTheme$;
     this.languages = this.languageService.supportedLanguages;
     this.currentLanguage$ = this.languageService.currentLanguage$;
+    this.unreadChatCount$ = this.chatNotificationService.unreadCount$;
   }
 
   ngOnInit(): void {
@@ -88,10 +92,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.avatarUrl = null;
         this.dropdownOpen = false;
         this.adminDropdownOpen = false;
+        this.chatNotificationService.stop();
         this.bootstrapUserFromStoredToken();
         return;
       }
 
+      this.chatNotificationService.start(this.authService.getAccessToken());
       this.loadProfileAvatar();
     });
 

@@ -1,0 +1,188 @@
+@if (currentUser) {
+  <div
+    class="fixed z-[70] flex flex-col items-end"
+    [style.left.px]="bubbleX"
+    [style.top.px]="bubbleY"
+  >
+    @if (isOpen) {
+      <section
+        class="fixed z-[69] flex flex-col overflow-hidden rounded-box border border-base-300 bg-base-100 shadow-2xl"
+        [style.left.px]="popupLeft"
+        [style.top.px]="popupTop"
+        [style.width.px]="popupWidth"
+        [style.height.px]="popupHeight"
+      >
+        <header class="flex items-center justify-between border-b border-base-300 px-3 py-2">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold">
+              <i class="fa-solid fa-comments mr-2 text-xs text-primary"></i>
+              {{ 'friendsChat.widget.title' | translate }}
+            </p>
+            <p class="truncate text-xs text-base-content/60">
+              {{
+                selectedFriend
+                  ? selectedFriend.displayName
+                  : ('friendsChat.widget.subtitle' | translate)
+              }}
+            </p>
+          </div>
+          <div class="flex items-center gap-1">
+            @if (selectedFriend) {
+              <button
+                type="button"
+                class="btn btn-ghost btn-xs"
+                (click)="backToFriends()"
+                [attr.aria-label]="'friendsChat.widget.backToList' | translate"
+              >
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+            }
+            <a
+              class="btn btn-ghost btn-xs"
+              routerLink="/friends-chat"
+              (click)="closePanel()"
+              [attr.aria-label]="'friendsChat.widget.openFullPage' | translate"
+            >
+              <i class="fa-solid fa-up-right-from-square"></i>
+            </a>
+            <button
+              type="button"
+              class="btn btn-ghost btn-xs"
+              (click)="closePanel()"
+              [attr.aria-label]="'common.close' | translate"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </header>
+
+        @if (!selectedFriend) {
+          <div class="min-h-0 flex-1 overflow-y-auto p-2">
+            @if (loadingFriends) {
+              <div class="p-3 text-xs text-base-content/60">{{ 'common.loading' | translate }}</div>
+            } @else if (friends.length === 0) {
+              <div
+                class="flex h-full items-center justify-center p-4 text-center text-sm text-base-content/60"
+              >
+                {{ 'friendsChat.sidebar.noFriends' | translate }}
+              </div>
+            } @else {
+              <div class="space-y-1">
+                @for (friend of friends; track trackById($index, friend)) {
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-3 rounded-box border border-base-300 px-3 py-2 text-left transition hover:bg-base-200"
+                    (click)="selectFriend(friend.id)"
+                  >
+                    @if (friend.avatarUrl) {
+                      <img
+                        [src]="friend.avatarUrl"
+                        alt=""
+                        class="h-9 w-9 rounded-full object-cover"
+                      />
+                    } @else {
+                      <div class="avatar placeholder">
+                        <div class="h-9 w-9 rounded-full bg-base-300 text-xs">
+                          <span>{{ friend.displayName.charAt(0).toUpperCase() }}</span>
+                        </div>
+                      </div>
+                    }
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-medium">{{ friend.displayName }}</p>
+                      <p class="truncate text-xs text-base-content/60">{{ friend.email }}</p>
+                    </div>
+                    @if ((unreadByFriendId[friend.id] ?? 0) > 0) {
+                      <span class="badge badge-primary badge-sm">{{
+                        unreadByFriendId[friend.id]
+                      }}</span>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="flex min-h-0 flex-1 flex-col">
+            <div class="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              @if (loadingMessages) {
+                <div class="text-sm text-base-content/60">{{ 'common.loading' | translate }}</div>
+              } @else if (messages.length === 0) {
+                <div class="text-sm text-base-content/60">
+                  {{ 'friendsChat.chat.noMessages' | translate }}
+                </div>
+              } @else {
+                @for (message of messages; track trackById($index, message)) {
+                  <div
+                    class="chat"
+                    [class.chat-end]="message.mine"
+                    [class.chat-start]="!message.mine"
+                  >
+                    <div class="chat-bubble" [class.chat-bubble-primary]="message.mine">
+                      <p class="whitespace-pre-wrap break-words text-sm">{{ message.content }}</p>
+                    </div>
+                    <div class="chat-footer mt-1 text-[11px] text-base-content/60">
+                      {{ formatMessageTime(message.createdAt) }}
+                      @if (message.mine) {
+                        <span class="ml-2 inline-flex items-center gap-1">
+                          <i
+                            class="text-[10px]"
+                            [class.fa-solid]="true"
+                            [class.fa-check]="!message.readAt"
+                            [class.fa-check-double]="!!message.readAt"
+                          ></i>
+                          {{
+                            message.readAt
+                              ? ('friendsChat.chat.readMark' | translate)
+                              : ('friendsChat.chat.sentMark' | translate)
+                          }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="border-t border-base-300 p-3">
+              <div class="flex items-end gap-2">
+                <textarea
+                  class="textarea textarea-bordered h-20 flex-1 resize-none"
+                  [placeholder]="'friendsChat.chat.inputPlaceholder' | translate"
+                  [(ngModel)]="messageDraft"
+                ></textarea>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  [disabled]="sendingMessage || !messageDraft.trim()"
+                  (click)="sendMessage()"
+                >
+                  <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <button
+      type="button"
+      class="btn btn-circle btn-primary btn-lg relative touch-none transition-all duration-150 ease-out"
+      [class.cursor-grab]="!isDraggingBubble"
+      [class.cursor-grabbing]="isDraggingBubble"
+      [class.scale-95]="isBubblePressed || isDraggingBubble"
+      [class.shadow-2xl]="isDraggingBubble"
+      (pointerdown)="onBubblePointerDown($event)"
+      (keydown.enter)="togglePanel()"
+      (keydown.space)="togglePanel(); $event.preventDefault()"
+      [attr.aria-label]="'friendsChat.widget.toggle' | translate"
+    >
+      <i class="fa-solid" [class.fa-comments]="!isOpen" [class.fa-xmark]="isOpen"></i>
+      @if (totalUnread > 0 && !isOpen) {
+        <span class="badge badge-error badge-sm absolute -right-1 -top-1 min-w-5 px-1">{{
+          totalUnread
+        }}</span>
+      }
+    </button>
+  </div>
+}

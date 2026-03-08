@@ -9,6 +9,7 @@ import {AppComponent} from './app.component';
 import {authInterceptor} from './features/auth/data-access/auth.interceptor';
 import {NavbarComponent} from './shared/components/navbar/navbar.component';
 import {ToastViewportComponent} from './core/toast/toast-viewport.component';
+import {ChatBubbleWidgetComponent} from './shared/components/chat-bubble-widget/chat-bubble-widget.component';
 
 @NgModule({
   declarations: [AppComponent],
@@ -16,6 +17,7 @@ import {ToastViewportComponent} from './core/toast/toast-viewport.component';
     BrowserModule,
     NavbarComponent,
     ToastViewportComponent,
+    ChatBubbleWidgetComponent,
     AppRoutingModule,
     TranslateModule.forRoot(),
   ],

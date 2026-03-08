@@ -1,0 +1,264 @@
+<section class="flex h-full min-h-0 flex-col gap-4">
+  <div class="grid min-h-0 flex-1 gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+    <aside class="card min-h-0 border border-base-300 bg-base-100 shadow-sm">
+      <div class="card-body flex min-h-0 flex-col gap-3 p-3">
+        <div class="flex items-center justify-between border-b border-base-300 pb-2">
+          <p class="text-sm font-semibold">
+            <i class="fa-solid fa-user-group mr-1 text-xs text-base-content/70"></i>
+            {{ 'friendsChat.sidebar.title' | translate }}
+          </p>
+          <span class="badge badge-outline badge-sm">{{ friends.length }}</span>
+        </div>
+
+        <div class="space-y-2">
+          <label class="input input-bordered input-sm flex items-center gap-2">
+            <i class="fa-solid fa-user-plus text-xs text-base-content/60"></i>
+            <input
+              type="text"
+              class="grow"
+              [placeholder]="'friendsChat.sidebar.searchPlaceholder' | translate"
+              [(ngModel)]="userSearchQuery"
+              (ngModelChange)="onSearchInputChange()"
+            />
+          </label>
+          @if (searchingUsers) {
+            <div class="text-xs text-base-content/60">{{ 'common.loading' | translate }}</div>
+          } @else if (userSearchQuery.trim().length >= 2) {
+            <div class="max-h-36 overflow-y-auto rounded-box border border-base-300">
+              @if (searchResults.length === 0) {
+                <div class="px-3 py-2 text-xs text-base-content/60">
+                  {{ 'friendsChat.sidebar.noSearchResults' | translate }}
+                </div>
+              } @else {
+                @for (user of searchResults; track trackById($index, user)) {
+                  <div
+                    class="flex items-center justify-between gap-2 border-b border-base-300 px-3 py-2 last:border-b-0"
+                  >
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium">{{ user.displayName }}</p>
+                      <p class="truncate text-xs text-base-content/60">{{ user.email }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-xs btn-primary"
+                      [disabled]="searchActionUserIds.has(user.id)"
+                      (click)="sendFriendRequest(user)"
+                    >
+                      {{ 'friendsChat.actions.add' | translate }}
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+
+        <div class="rounded-box border border-base-300">
+          <div
+            class="border-b border-base-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-base-content/70"
+          >
+            {{ 'friendsChat.sidebar.incomingRequests' | translate }}
+          </div>
+          <div class="max-h-32 overflow-y-auto">
+            @if (loadingRequests) {
+              <div class="px-3 py-2 text-xs text-base-content/60">
+                {{ 'common.loading' | translate }}
+              </div>
+            } @else if (incomingRequests.length === 0) {
+              <div class="px-3 py-2 text-xs text-base-content/60">
+                {{ 'friendsChat.sidebar.noIncomingRequests' | translate }}
+              </div>
+            } @else {
+              @for (request of incomingRequests; track trackByRequestId($index, request)) {
+                <div class="border-b border-base-300 px-3 py-2 last:border-b-0">
+                  <p class="truncate text-sm font-medium">{{ request.user.displayName }}</p>
+                  <div class="mt-1 flex gap-1">
+                    <button
+                      type="button"
+                      class="btn btn-success btn-xs"
+                      [disabled]="requestActionIds.has(request.requestId)"
+                      (click)="acceptRequest(request)"
+                    >
+                      {{ 'friendsChat.actions.accept' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-xs"
+                      [disabled]="requestActionIds.has(request.requestId)"
+                      (click)="rejectRequest(request)"
+                    >
+                      {{ 'friendsChat.actions.reject' | translate }}
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="rounded-box border border-base-300">
+          <div
+            class="border-b border-base-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-base-content/70"
+          >
+            {{ 'friendsChat.sidebar.outgoingRequests' | translate }}
+          </div>
+          <div class="max-h-24 overflow-y-auto">
+            @if (outgoingRequests.length === 0) {
+              <div class="px-3 py-2 text-xs text-base-content/60">
+                {{ 'friendsChat.sidebar.noOutgoingRequests' | translate }}
+              </div>
+            } @else {
+              @for (request of outgoingRequests; track trackByRequestId($index, request)) {
+                <div class="border-b border-base-300 px-3 py-2 last:border-b-0">
+                  <p class="truncate text-sm">{{ request.user.displayName }}</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="min-h-0 flex-1 rounded-box border border-base-300">
+          <div
+            class="border-b border-base-300 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-base-content/70"
+          >
+            {{ 'friendsChat.sidebar.friends' | translate }}
+          </div>
+          <div class="max-h-full overflow-y-auto">
+            @if (loadingFriends) {
+              <div class="px-3 py-2 text-xs text-base-content/60">
+                {{ 'common.loading' | translate }}
+              </div>
+            } @else if (friends.length === 0) {
+              <div class="px-3 py-3 text-sm text-base-content/60">
+                {{ 'friendsChat.sidebar.noFriends' | translate }}
+              </div>
+            } @else {
+              @for (friend of friends; track trackById($index, friend)) {
+                <div
+                  class="flex items-center gap-2 border-b border-base-300 px-3 py-2 last:border-b-0"
+                  [class.bg-base-200]="selectedFriendId === friend.id"
+                >
+                  <button
+                    type="button"
+                    class="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    (click)="selectFriend(friend.id)"
+                  >
+                    @if (friend.avatarUrl) {
+                      <img
+                        [src]="friend.avatarUrl"
+                        alt=""
+                        class="h-8 w-8 rounded-full object-cover"
+                      />
+                    } @else {
+                      <div class="avatar placeholder">
+                        <div class="h-8 w-8 rounded-full bg-base-300 text-xs">
+                          <span>{{ friend.displayName.charAt(0).toUpperCase() }}</span>
+                        </div>
+                      </div>
+                    }
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-medium">{{ friend.displayName }}</p>
+                      <p class="truncate text-xs text-base-content/60">{{ friend.email }}</p>
+                    </div>
+                  </button>
+                  @if ((unreadByFriendId[friend.id] ?? 0) > 0) {
+                    <span class="badge badge-primary badge-sm">{{
+                      unreadByFriendId[friend.id]
+                    }}</span>
+                  }
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-xs"
+                    [disabled]="friendActionIds.has(friend.id)"
+                    (click)="removeFriend(friend)"
+                    [attr.aria-label]="'friendsChat.actions.removeFriend' | translate"
+                  >
+                    <i class="fa-solid fa-user-minus text-xs"></i>
+                  </button>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="card min-h-0 border border-base-300 bg-base-100 shadow-sm">
+      @if (selectedFriend; as friend) {
+        <div class="card-body flex min-h-0 flex-col p-0">
+          <div class="flex items-center justify-between gap-3 border-b border-base-300 px-4 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold">{{ friend.displayName }}</p>
+              <p class="truncate text-xs text-base-content/60">{{ friend.email }}</p>
+            </div>
+            <span class="badge badge-outline">{{ 'friendsChat.chat.live' | translate }}</span>
+          </div>
+
+          <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            @if (loadingMessages) {
+              <div class="text-sm text-base-content/60">{{ 'common.loading' | translate }}</div>
+            } @else if (messages.length === 0) {
+              <div class="text-sm text-base-content/60">
+                {{ 'friendsChat.chat.noMessages' | translate }}
+              </div>
+            } @else {
+              @for (message of messages; track trackById($index, message)) {
+                <div
+                  class="chat"
+                  [class.chat-end]="message.mine"
+                  [class.chat-start]="!message.mine"
+                >
+                  <div class="chat-bubble" [class.chat-bubble-primary]="message.mine">
+                    <p class="whitespace-pre-wrap break-words text-sm">{{ message.content }}</p>
+                  </div>
+                  <div class="chat-footer mt-1 text-[11px] text-base-content/60">
+                    {{ formatMessageTime(message.createdAt) }}
+                    @if (message.mine) {
+                      <span class="ml-2 inline-flex items-center gap-1">
+                        <i
+                          class="text-[10px]"
+                          [class.fa-solid]="true"
+                          [class.fa-check]="!message.readAt"
+                          [class.fa-check-double]="!!message.readAt"
+                        ></i>
+                        {{
+                          message.readAt
+                            ? ('friendsChat.chat.readMark' | translate)
+                            : ('friendsChat.chat.sentMark' | translate)
+                        }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="border-t border-base-300 px-4 py-3">
+            <div class="flex items-end gap-2">
+              <textarea
+                class="textarea textarea-bordered h-20 flex-1 resize-none"
+                [placeholder]="'friendsChat.chat.inputPlaceholder' | translate"
+                [(ngModel)]="messageDraft"
+              ></textarea>
+              <button
+                type="button"
+                class="btn btn-primary"
+                [disabled]="sendingMessage || !messageDraft.trim()"
+                (click)="sendMessage()"
+              >
+                <i class="fa-solid fa-paper-plane text-xs"></i>
+                {{ 'friendsChat.actions.send' | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <div class="card-body items-center justify-center text-center text-sm text-base-content/60">
+          <i class="fa-solid fa-comments text-lg"></i>
+          <p>{{ 'friendsChat.chat.selectFriend' | translate }}</p>
+        </div>
+      }
+    </section>
+  </div>
+</section>

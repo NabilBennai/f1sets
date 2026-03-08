@@ -39,6 +39,7 @@
     "home": "Home",
     "trackCatalog": "Track catalog",
     "setups": "Setups",
+    "friendsChat": "Friends chat",
     "aiDifficulty": "AI Difficulty",
     "admin": "Admin",
     "adminTracks": "Tracks",
@@ -463,6 +464,56 @@
       "notFound": "Profile not found.",
       "invalidId": "Invalid profile id.",
       "signInRequired": "Sign in required to view this profile."
+    }
+  },
+  "friendsChat": {
+    "widget": {
+      "title": "Messages",
+      "subtitle": "Select a friend to open a conversation",
+      "toggle": "Toggle chat widget",
+      "backToList": "Back to friends list",
+      "openFullPage": "Open full chat page"
+    },
+    "sidebar": {
+      "title": "Friends",
+      "searchPlaceholder": "Search users to add",
+      "noSearchResults": "No matching users.",
+      "incomingRequests": "Incoming requests",
+      "outgoingRequests": "Outgoing requests",
+      "noIncomingRequests": "No incoming requests.",
+      "noOutgoingRequests": "No outgoing requests.",
+      "friends": "Friends list",
+      "noFriends": "No friends yet. Add users to start chatting."
+    },
+    "chat": {
+      "live": "Live",
+      "selectFriend": "Select a friend to start chatting.",
+      "noMessages": "No messages yet.",
+      "inputPlaceholder": "Type your message...",
+      "sentMark": "Sent",
+      "readMark": "Read"
+    },
+    "actions": {
+      "add": "Add",
+      "accept": "Accept",
+      "reject": "Reject",
+      "send": "Send",
+      "removeFriend": "Remove friend"
+    },
+    "messages": {
+      "loadFriendsFailed": "Failed to load friends.",
+      "loadRequestsFailed": "Failed to load friend requests.",
+      "searchFailed": "Failed to search users.",
+      "requestSent": "Friend request sent.",
+      "requestFailed": "Failed to send friend request.",
+      "requestAccepted": "Friend request accepted.",
+      "requestRejected": "Friend request rejected.",
+      "requestActionFailed": "Failed to update friend request.",
+      "friendRemoved": "Friend removed.",
+      "friendRemoveFailed": "Failed to remove friend.",
+      "loadMessagesFailed": "Failed to load chat history.",
+      "socketNotConnected": "Chat connection is not ready.",
+      "confirmRemoveFriend": "Remove {{name}} from your friends?"
     }
   },
   "setups": {
